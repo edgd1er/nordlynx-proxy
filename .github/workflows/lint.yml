@@ -1,0 +1,21 @@
+name: lint nordlynx proxy dockerfile
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - master
+    paths-ignore:
+      - '.github/**'
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v2
+      - name: hadolint
+        uses: hadolint/hadolint-action@v1.5.0
+        with:
+          dockerfile: ./Dockerfile

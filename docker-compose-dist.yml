@@ -1,0 +1,23 @@
+version: '3.8'
+services:
+  proxy:
+    image: edgd1er/nordvpn-proxy:latest
+    restart: unless-stopped
+    ports:
+      - "1080:1080"
+    devices:
+      - /dev/net/tun
+    sysctls:
+      - net.ipv4.conf.all.rp_filter=2
+    cap_add:
+      - SYS_MODULE
+      - NET_ADMIN
+    env_file:
+      - nordVpn_Credentials
+    environment:
+      - TZ=America/Chicago
+      - NORDVPN_USER=<email>
+      - NORDVPN_PASS=<pass>
+      - CONNECT=uk
+      - TECHNOLOGY=NordLynx
+      - DEBUG=
