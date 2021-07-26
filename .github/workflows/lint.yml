@@ -1,4 +1,4 @@
-name: lint nordlynx proxy dockerfile
+name: lint dockerfile
 
 on:
   workflow_dispatch:

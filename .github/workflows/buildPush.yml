@@ -1,4 +1,4 @@
-name: build nordlynx proxy multi-arch images
+name: build multi-arch images
 
 on:
   workflow_dispatch:
