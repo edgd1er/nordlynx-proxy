@@ -39,12 +39,19 @@ The main advantages are:
 The container may use environment variable to select a server, otherwise the best recommended server is selected:
 see environment variables to get all available options or [nordVpn support](https://support.nordvpn.com/Connectivity/Linux/1325531132/Installing-and-using-NordVPN-on-Debian-Ubuntu-Raspberry-Pi-Elementary-OS-and-Linux-Mint.htm#Settings).
 
+adding 
+``` docker
+sysclts:
+ - net.ipv6.conf.all.disable_ipv6=1 # disable ipv6
+ ```
+  might be needed, if nordvpn cannot change the settings itself.
+
 * TECHNOLOGY=[NordLynx]/[OpenVPN], default: NordLynx
-* CONNECT = [country]/[server]/[country_code]/[city]/[group] or [country] [city], if none provide you will connect to the recommended server.
-* [NORDVPN_COUNTRY](https://api.nordvpn.com/v1/servers/countries) define the exit country.
-* [NORDVPN_CATEGORY](https://api.nordvpn.com/v1/servers/groups) although many categories are possible, p2p seems more adapted.
-* USER=email (As of 21/07/25, Service credentials are not allowed.)
-* PASS=pass 
+* CONNECT = [country]/[server]/[country_code]/[city] or [country] [city], if none provide you will connect to the recommended server.
+* [COUNTRY](https://api.nordvpn.com/v1/servers/countries) define the exit country.
+* [GROUP](https://api.nordvpn.com/v1/servers/groups): Africa_The_Middle_East_And_India, Asia_Pacific, Europe, Onion_Over_VPN, P2P, Standard_VPN_Servers, The_Americas, although many categories are possible, p2p seems more adapted.
+* NORDVPN_USER=email (As of 21/07/25, Service credentials are not allowed.)
+* NORDVPN_PASS=pass 
 * CYBER_SEC, default off
 * KILLERSWITCH, default on
 * DNS: change dns
@@ -56,7 +63,7 @@ see environment variables to get all available options or [nordVpn support](http
 * DEBUG: (true/false) verbose mode for initial script lauch and dante server.
 
 ```bash
-docker run -it --rm --cap-add NET_ADMIN -p 1081:1080 --device /dev/net/tun -e NORDVPN_USER=<email> -e NORDVPN_PASS='<pass>' -e NORDVPN_COUNTRY=Poland
+docker run -it --rm --cap-add NET_ADMIN -p 1081:1080 --device /dev/net/tun -e NORDVPN_USER=<email> -e NORDVPN_PASS='<pass>' -e COUNTRY=Poland
  -e edgd1er/nordlynx-proxy
 ```
 
@@ -71,19 +78,27 @@ services:
     devices:
       - /dev/net/tun
     sysctls:
-      - net.ipv4.conf.all.rp_filter=2
+      - net.ipv6.conf.all.disable_ipv6=1 # disable ipv6
+      #      - net.ipv4.conf.all.rp_filter=2 # Loose Reverse Path: https://access.redhat.com/solutions/53031
     cap_add:
-      - SYS_MODULE
-      - NET_ADMIN
-    env_file:
-      - nordVpn_Credentials
+      - NET_ADMIN               # Required
+#      - SYS_MODULE              # Required for TECHNOLOGY=NordLynx
     environment:
       - TZ=America/Chicago
-      - NORDVPN_USER=<email>
-      - NORDVPN_PASS=<pass>
       - CONNECT=uk
       - TECHNOLOGY=NordLynx
       - DEBUG=
+      - NORDVPN_USER=<email> #Not required if using secrets
+      - NORDVPN_PASS=<pass> #Not required if using secrets
+    secrets:
+      - NORDVPN_LOGIN
+      - NORDVPN_PASS
+
+secrets:
+    NORDVPN_LOGIN:
+        file: ./nordvpn_login
+    NORDVPN_PASS:
+        file: ./nordvpn_pwd
 ```
 
 

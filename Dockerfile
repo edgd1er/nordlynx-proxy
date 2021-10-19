@@ -1,7 +1,7 @@
 FROM debian:buster-slim
 
 ARG aptcacher
-ARG VERSION=3.10.0-1
+ARG VERSION=3.11.0-1
 ARG TZ=America/Chicago
 
 LABEL maintainer="edgd1er <edgd1er@htomail.com>" \
@@ -39,11 +39,10 @@ RUN if [[ -n "${aptcacher}" ]]; then echo "Acquire::http::Proxy \"http://${aptca
     if [[ -n "${aptcacher}" ]]; then rm /etc/apt/apt.conf.d/01proxy; fi
     #chmod +x /start_vpn.sh
 
-HEALTHCHECK --interval=5m --timeout=20s --start-period=1m \
-  CMD if test "$( curl -m 10 -s https://api.nordvpn.com/vpn/check/full | jq -r \'.["status"]\' )" = "Protected" ; then exit 0; else exit 1; fi
+HEALTHCHECK --interval=5m --timeout=20s --start-period=1m CMD /app/healthcheck.sh
 
 COPY etc/ /etc/
-COPY app/start_vpn.sh /app/
+COPY app/ /app/
 
 # Start supervisord as init system
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]

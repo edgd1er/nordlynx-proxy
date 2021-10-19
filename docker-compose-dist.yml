@@ -8,16 +8,28 @@ services:
     devices:
       - /dev/net/tun
     sysctls:
-      - net.ipv4.conf.all.rp_filter=2
+#      - net.ipv4.conf.all.rp_filter=2 # Loose Reverse Path: https://access.redhat.com/solutions/53031
+      - net.ipv6.conf.all.disable_ipv6=1 # disable ipv6
     cap_add:
-      - SYS_MODULE
-      - NET_ADMIN
+      - NET_ADMIN               # Required
+      #- SYS_MODULE              # Required for TECHNOLOGY=NordLynx ?
     env_file:
       - nordVpn_Credentials
     environment:
       - TZ=America/Chicago
-      - NORDVPN_USER=<email>
-      - NORDVPN_PASS=<pass>
-      - CONNECT=uk
+      - COUNTRY=uk
+      - GROUP=P2P
+      - CYBER_SEC=off
       - TECHNOLOGY=NordLynx
-      - DEBUG=
+      - DEBUG=false
+      - NORDVPN_USER=<email> #Not required if using secrets
+      - NORDVPN_PASS=<pass> #Not required if using secrets
+    secrets:
+      - NORDVPN_LOGIN
+      - NORDVPN_PASS
+
+secrets:
+  NORDVPN_LOGIN:
+    file: ./nordvpn_login
+  NORDVPN_PASS:
+    file: ./nordvpn_pwd
