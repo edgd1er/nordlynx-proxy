@@ -96,6 +96,8 @@ setup_nordvpn() {
 }
 
 #Main
+#Overwrite docker dns as it may fail with specific configuration (dns on server)
+echo "nameserver 1.1.1.1" >/etc/resolv.conf
 checkLatest
 #checkLatestApt
 [[ -z ${CONNECT} ]] && exit 1

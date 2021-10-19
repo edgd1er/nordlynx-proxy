@@ -34,6 +34,10 @@ The main advantages are:
 - can select openvpn or nordlynx protocol
 - use of nordVpn app features (Killswitch, cybersec, ....)
 
+
+please note, that to avoid dns problem when the dns service is on the same server, /etc/resolv.conf is set to google DNS (1.1.1.1).
+That DNS is used only during startup (check latest nordvpn version)
+
 ## Usage
 
 The container may use environment variable to select a server, otherwise the best recommended server is selected:
