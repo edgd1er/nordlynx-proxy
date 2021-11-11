@@ -1,0 +1,20 @@
+name: check nordvpn version
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+env:
+  NORDVPN_VERSION: 3.12.0-1
+  NORDVPN_PACKAGE: https://repo.nordvpn.com/deb/nordvpn/debian/dists/stable/main/binary-amd64/Packages
+
+jobs:
+  check_version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: get latest version
+        id: getlatestversion
+        run: |
+          ver=$(curl -s "${env.NORDVPN_PACKAGE}" | grep -oP "(?<=Version: )(.*)" | sort -t. -n -k1,1 -k2,2 -k3,3 | tail -1)
+          echo "image version: ${{ env.NORDVPN_VERSION }}, latest nordvpn version: ${ver}"
+          if [[ ${{ env.MKVVERSION }} != ${ver} ]]; then exit 1; fi
