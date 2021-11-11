@@ -22,7 +22,7 @@ fi
 
 
 # try N times to connect.
-while ${N} -ge 0
+while ${N} -gt 0
 do
   nordvpn connect ${CONNECT}
   sleep 10
@@ -31,6 +31,6 @@ do
   N--
 done
 
-log "ERROR: all ${n} reconnection tries failed, exiting."
+log "ERROR: all ${N} reconnection tries failed, exiting."
 
 exit 1

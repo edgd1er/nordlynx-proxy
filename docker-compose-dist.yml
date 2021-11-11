@@ -4,17 +4,14 @@ services:
     image: edgd1er/nordvpn-proxy:latest
     restart: unless-stopped
     ports:
-      - "1080:1080"
+      - "1080:1080" #socks proxy port
+      - "8888:8888" #http proxy port
     devices:
       - /dev/net/tun
     sysctls:
-#      - net.ipv4.conf.all.rp_filter=2 # Loose Reverse Path: https://access.redhat.com/solutions/53031
       - net.ipv6.conf.all.disable_ipv6=1 # disable ipv6
     cap_add:
       - NET_ADMIN               # Required
-      #- SYS_MODULE              # Required for TECHNOLOGY=NordLynx ?
-    env_file:
-      - nordVpn_Credentials
     environment:
       - TZ=America/Chicago
       - COUNTRY=uk

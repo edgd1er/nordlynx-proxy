@@ -5,10 +5,12 @@ SHELL:=bash
 
 # Enable BuildKit for Docker build
 export DOCKER_BUILDKIT:=1
+export COMPOSE_DOCKER_CLI_BUILD:=0
 
 
 # https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
-help:
+help: ## generate help list
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 lint: ## stop all containers
 	@echo "lint dockerfile ..."
@@ -18,6 +20,6 @@ build: ## build image
 	@echo "build image ..."
 	docker-compose build
 
-run:
+run: ## run container
 	@echo "run container"
 	docker-compose up

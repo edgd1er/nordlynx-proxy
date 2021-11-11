@@ -1,8 +1,8 @@
 FROM debian:buster-slim
 
 ARG aptcacher
-ARG VERSION=3.11.0-1
-ARG TZ=America/Chicago
+ARG VERSION=3.12.0-1
+ARG TZ=America/Chicag
 
 LABEL maintainer="edgd1er <edgd1er@htomail.com>" \
       org.label-schema.build-date=$BUILD_DATE \
@@ -27,7 +27,7 @@ RUN if [[ -n "${aptcacher}" ]]; then echo "Acquire::http::Proxy \"http://${aptca
     echo "Acquire::https::Proxy \"http://${aptcacher}:3142\";" >>/etc/apt/apt.conf.d/01proxy ; fi; \
     apt-get update && export DEBIAN_FRONTEND=non-interactive && \
     apt-get -o Dpkg::Options::="--force-confold" install --no-install-recommends -qqy supervisor wget curl jq \
-    ca-certificates tzdata dante-server net-tools \
+    ca-certificates tzdata dante-server net-tools tinyproxy\
     # nordvpn requirements
     iproute2 iptables readline-common dirmngr gnupg gnupg-l10n gnupg-utils gpg gpg-agent gpg-wks-client \
     gpg-wks-server gpgconf gpgsm libassuan0 libksba8 libnpth0 libreadline7 libsqlite3-0 lsb-base pinentry-curses   && \
@@ -43,4 +43,4 @@ RUN if [[ -n "${aptcacher}" ]]; then echo "Acquire::http::Proxy \"http://${aptca
 HEALTHCHECK --interval=5m --timeout=20s --start-period=1m CMD /app/healthcheck.sh
 
 # Start supervisord as init system
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]
+CMD ["/usr/bin/supervisord", "-n", "-c", "/etc/supervisor/supervisord.conf"]

@@ -1,28 +1,35 @@
 #!/bin/bash
 
-set -eu
+set -e -u -o pipefail
 
 RDIR=/run/nordvpn
-DEBUG=${DEBUG:-false}
+DEBUG=${DEBUG:-0}
 COUNTRY=${COUNTRY:-''}
 CONNECT=${CONNECT:-''}
 GROUP=${GROUP:-''}
-NOIPV6=${NOIPV6:-'off'}
+IPV6=${IPV6:-'off'}
 [[ -n ${COUNTRY} && -z ${CONNECT} ]] && CONNECT=${COUNTRY} && export ${CONNECT}
 [[ "${GROUPID:-''}" =~ ^[0-9]+$ ]] && groupmod -g $GROUPID -o vpn
 [[ -n ${GROUP} ]] && GROUP="--group ${GROUP}"
+#get container network (class B) to whitelist container subnet:  ${LOCALNET}.0.0/16
+LOCALNET=$(hostname -i | grep -Eom1 "(^[0-9]{1,3}\.[0-9]{1,3})")
 
-if ${DEBUG}; then
+[[ "false" == ${DEBUG} ]] && export DEBUG=0
+[[ "true" == ${DEBUG} ]] && export DEBUG=1
+
+if [[ 1 -eq ${DEBUG} ]]; then
   set -x
-  [[ -z ${DANTE_DEBUG:-''} ]] && export DANTE_DEBUG=1
+  #set DANTE_DEBUG onl if not already set
+  [[ -z ${DANTE_DEBUG:-''} ]] && export DANTE_DEBUG=9
+else
+  #set DANTE_DEBUG onl if not already set
+  DANTE_DEBUG=${DANTE_DEBUG:-0}
 fi
-DANTE_DEBUG=${DANTE_DEBUG:-0}
+
+
+. /app/date.sh --source-only
 
 ##Functions
-log() {
-  echo "$(date +"%Y-%m-%d %T"): $*"
-}
-
 setTimeZone() {
   [[ ${TZ} == $(cat /etc/timezone) ]] && return
   log "INFO: Setting timezone to ${TZ}"
@@ -78,39 +85,75 @@ checkLatestApt() {
 }
 
 #embedded in nordvpn client but not efficient in container. done in docker-compose
-#setIPV6 ${NOIPV6}
+#setIPV6 ${IPV6}
 
 setup_nordvpn() {
   nordvpn set technology ${TECHNOLOGY:-'NordLynx'}
   nordvpn set cybersec ${CYBER_SEC:-'off'}
   nordvpn set killswitch ${KILLERSWITCH:-'on'}
-  nordvpn set ipv6 ${NOIPV6} 2>/dev/null
+  nordvpn set ipv6 ${IPV6} 2>/dev/null
   [[ -n ${DNS:-''} ]] && nordvpn set dns ${DNS//[;,]/ }
   [[ -z ${DOCKER_NET:-''} ]] && DOCKER_NET="$(hostname -i | grep -Eom1 "^[0-9]{1,3}\.[0-9]{1,3}").0.0/12"
   nordvpn whitelist add subnet ${DOCKER_NET}
   [[ -n ${NETWORK:-''} ]] && for net in ${NETWORK//[;,]/ }; do nordvpn whitelist add subnet ${net}; done
   [[ -n ${PORTS:-''} ]] && for port in ${PORTS//[;,]/ }; do nordvpn whitelist add port ${port}; done
   [[ ${DEBUG} ]] && nordvpn -version && nordvpn settings
-  localnet=$(hostname -i | grep -Eom1 "(^[0-9]{1,3}\.[0-9]{1,3})")
-  nordvpn whitelist add subnet ${localnet}.0.0/16
+  nordvpn whitelist add subnet ${LOCALNET}.0.0/16
+  if [[ -n ${LOCAL_NETWORK} ]]; then
+    nordvpn whitelist add subnet ${LOCAL_NETWORK}
+    eval $(/sbin/ip route list match 0.0.0.0 | awk '{if($5!="tun0"){print "GW="$3"\nINT="$5; exit}}')
+    echo "LOCAL_NETWORK: ${LOCAL_NETWORK}, Gateway: ${GW}, device ${INT}"
+    if [[ -n ${GW:-""} ]] && [[ -n ${INT:-""} ]]; then
+      for localNet in ${LOCAL_NETWORK//,/ }; do
+        echo "adding route to local network ${localNet} via ${GW} dev ${INT}"
+        /sbin/ip route add "${localNet}" via "${GW}" dev "${INT}"
+      done
+    fi
+  else
+    log "OPENVPN: undefined LOCAL_NETWORK, sockd and http proxies available only through 127.0.0.1 or 0.0.0.0"
+  fi
+}
+
+mkTun(){
+# Create a tun device see: https://www.kernel.org/doc/Documentation/networking/tuntap.txt
+if [ ! -c /dev/net/tun ]; then
+    log "INFO: OVPN: Creating tun interface /dev/net/tun"
+    mkdir -p /dev/net
+    mknod /dev/net/tun c 10 200
+    chmod 600 /dev/net/tun
+fi
 }
 
 #Main
-#Overwrite docker dns as it may fail with specific configuration (dns on server)
+#Overwrite docker dns as it may fail with specific configuration (dns on server/container crash)
 echo "nameserver 1.1.1.1" >/etc/resolv.conf
-checkLatest
+setTimeZone
+
 #checkLatestApt
+#log all if required: IPTABLES_LOG=1
+if [[ -f /app/logAll.sh ]]; then
+  /app/logAll.sh
+else
+  log "INFO: logall feature not available"
+fi
+#exit if required vars are missing
 [[ -z ${CONNECT} ]] && exit 1
 [[ ! -d ${RDIR} ]] && mkdir -p ${RDIR}
 
+#make /dev/tun if missing
+mkTun
 set_iptables DROP
-setTimeZone
 set_iptables ACCEPT
 
+log "INFO: NORDVPN: starting nordvpn daemon"
+supervisorctl start nordvpnd
+sleep 2
+#need daemon to be up, check if installed nordvpn app is the latest available
+checkLatest
 #start nordvpn daemon
 while [ ! -S ${RDIR}/nordvpnd.sock ]; do
   log "WARNING: NORDVPN: restart nordvpn daemon as no socket was found"
-  supervisorctl restart nordvpn
+  supervisorctl restart nordvpnd
   sleep 4
 done
 
@@ -129,7 +172,7 @@ fi
 
 # login: already logged in return 1
 res=$(nordvpn login --username ${NORDVPN_LOGIN} --password "${NORDVPN_PASS}" || true)
-if [[ "${res}" != *"Welcome to NordVPN"*  ]] && [[ "${res}" != *"You are already logged in."* ]]; then
+if [[ "${res}" != *"Welcome to NordVPN"* ]] && [[ "${res}" != *"You are already logged in."* ]]; then
   log "ERROR: NORDVPN: cannot login: ${res}"
   exit 1
 fi
@@ -153,15 +196,22 @@ nordvpn status
 log "INFO: current WAN IP: $(curl -s 'https://api.ipify.org?format=json' | jq .ip)"
 
 log "INFO: DANTE: generate configuration"
-export INTERFACE=$(ifconfig | grep -oE "(tun|nordlynx)")
-eval "echo \"$(cat /etc/danted.conf.tmpl)\"" >/etc/danted.conf
+/app/dante_config.sh
 
-#check connected status
+log "INFO: TINYPROXY: generate configuration"
+/app/tinyproxy_config.sh
+
+#check N times for connected status
 N=10
 while [[ $(nordvpn status | grep -ic "connected") -eq 0 ]]; do
-  sleep 10
+  sleep 3
   N--
-  [[ ${n} -eq 0 ]] && log "ERROR: NORDVPN: cannot connect" && exit 1
+  [[ ${N} -eq 0 ]] && log "ERROR: NORDVPN: cannot connect" && exit 1
 done
 
+log "INFO: DANTE: starting"
 supervisorctl start dante
+sleep 2
+log "INFO: TINYPROXY: starting"
+supervisorctl start tinyproxy
+
