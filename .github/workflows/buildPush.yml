@@ -47,10 +47,13 @@ jobs:
             TZ=America/Chicago
           platforms: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
           push: true
-          tags: ${{ secrets.DOCKER_USER }}/${{ env.IMAGE }}:${{ env.TAG }}
+          tags: |
+            ${{ secrets.DOCKER_USER }}/${{ env.IMAGE }}:${{ env.TAG }}
+            ${{ secrets.DOCKER_USER }}/${{ env.IMAGE }}:${{ env.VERSION }}
       - name: Inspect image
         run: |
           docker buildx imagetools inspect ${{ secrets.DOCKER_USER }}/${{ env.IMAGE }}:${{ env.TAG }}
+          docker buildx imagetools inspect ${{ secrets.DOCKER_USER }}/${{ env.IMAGE }}:${{ env.VERSION }}
       - name: clean
         if: always() && github.event_name != 'pull_request'
         run: |
