@@ -9,7 +9,7 @@ on:
       - '.github/**'
 env:
   IMAGE: nordlynx-proxy
-  VERSION: 3.11.0-1
+  VERSION: 3.12.0-1
   TAG: latest
 
 jobs:
