@@ -15,6 +15,6 @@ jobs:
       - name: get latest version
         id: getlatestversion
         run: |
-          ver=$(curl -s "${env.NORDVPN_PACKAGE}" | grep -oP "(?<=Version: )(.*)" | sort -t. -n -k1,1 -k2,2 -k3,3 | tail -1)
+          ver=$(curl -s "${{ env.NORDVPN_PACKAGE }}" | grep -oP "(?<=Version: )(.*)" | sort -t. -n -k1,1 -k2,2 -k3,3 | tail -1)
           echo "image version: ${{ env.NORDVPN_VERSION }}, latest nordvpn version: ${ver}"
-          if [[ ${{ env.MKVVERSION }} != ${ver} ]]; then exit 1; fi
+          if [[ ${{ env.NORDVPN_VERSION }} != ${ver} ]]; then exit 1; fi
