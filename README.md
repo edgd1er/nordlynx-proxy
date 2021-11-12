@@ -9,6 +9,17 @@
 
 # nordlynx-proxy
 
+Warning 1: login process is very unstable: 
+```
+It's not you, it's us. We're having trouble reaching our servers. If the issue persists, please contact our customer support.
+```
+
+Warning 2: soon this image wil be usable due to login/password process deprecation, replaced by nordaccount: 
+```
+Password login is deprecated.
+'nordvpn login --nordaccount' will become the default login method in the future.
+```
+
 This is a NordVPN docker container that connects to the NordVPN recommended servers through nordvpn client, and starts both a SOCKS5 proxy (dante) and an http proxy.
 Openvpn and nordlynx technology are available.
 
