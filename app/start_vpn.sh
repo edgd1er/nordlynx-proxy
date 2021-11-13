@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e -u -o pipefail
+set -u -o pipefail
 
 RDIR=/run/nordvpn
 DEBUG=${DEBUG:-0}
@@ -57,7 +57,10 @@ setIPV6() {
 }
 
 checkLatest() {
-  CANDIDATE=$(curl -s https://nordvpn.com/fr/blog/nordvpn-linux-release-notes/ | grep -oP "NordVPN \K[0-9]\.[0-9]{1,2}" | head -1)
+  res=$(curl -ks https://nordvpn.com/en/blog/nordvpn-linux-release-notes/)
+  [[ -z $res ]] && return 1
+  CANDIDATE=$(echo ${res} | grep -oP "NordVPN \K[0-9]\.[0-9]{1,2}" | head -1)
+  [[ "" == ${CANDIDATE} ]] && return 1
   VERSION=$(nordvpn version | grep -oP "NordVPN Version \K.+")
   if [[ ${VERSION} =~ ${CANDIDATE} ]]; then
     log "INFO: No update needed for nordvpn (${VERSION})"
@@ -129,12 +132,13 @@ fi
 echo "nameserver 1.1.1.1" >/etc/resolv.conf
 setTimeZone
 
-#checkLatestApt
+
 #log all if required: IPTABLES_LOG=1
 if [[ -f /app/logAll.sh ]]; then
   /app/logAll.sh
 else
-  log "INFO: logall feature not available"
+  log "INFO: logall feature not availablebmw
+  "
 fi
 #exit if required vars are missing
 [[ -z ${CONNECT} ]] && exit 1
@@ -146,10 +150,14 @@ set_iptables DROP
 set_iptables ACCEPT
 
 log "INFO: NORDVPN: starting nordvpn daemon"
-supervisorctl start nordvpnd
-sleep 2
+action=start
+isRunning=$(supervisorctl status nordvpnd | grep -c RUNNING) || true
+[[ 0 -le ${isRunning} ]] && action=restart
+supervisorctl ${action} nordvpnd
+sleep 4
 #need daemon to be up, check if installed nordvpn app is the latest available
 checkLatest
+[[ 1 -eq $? ]]  && checkLatestApt
 #start nordvpn daemon
 while [ ! -S ${RDIR}/nordvpnd.sock ]; do
   log "WARNING: NORDVPN: restart nordvpn daemon as no socket was found"
