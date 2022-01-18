@@ -1,0 +1,34 @@
+name: Clean workflows
+on:
+  schedule:
+    - cron: "0 8 * * *"
+  workflow_dispatch:
+
+jobs:
+  clean_old_workflow:
+    runs-on: ubuntu-latest
+    env:
+      DRY: false
+    steps:
+      - name: Delete workflow runs
+        uses: dmvict/clean-workflow-runs@v1.0.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          save_period: 30
+          dry: ${{ env.DRY }}
+
+      - name: Delete workflow runs
+        uses: dmvict/clean-workflow-runs@v1.0.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          run_conclusions: |
+            action_required
+            cancelled
+            failure
+            neutral
+            skipped
+            stale
+            timed_out
+          save_period: 5
+          save_min_runs_number: 0
+          dry: ${{ env.DRY }}
