@@ -5,7 +5,8 @@ SHELL:=bash
 
 # Enable BuildKit for Docker build
 export DOCKER_BUILDKIT:=1
-export COMPOSE_DOCKER_CLI_BUILD:=0
+export COMPOSE_DOCKER_CLI_BUILD:=1
+export VERSION=3.12.4
 
 
 # https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
@@ -23,3 +24,6 @@ build: ## build image
 run: ## run container
 	@echo "run container"
 	docker-compose up
+
+actcheck: ## GHA check nordvpn app version
+	@act -r -j check_version -P ubuntu-latest=nektos/act-environments-ubuntu:20.04
