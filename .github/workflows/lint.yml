@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: hadolint
         uses: hadolint/hadolint-action@v1.6.0
         with:
