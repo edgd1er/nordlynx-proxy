@@ -1,12 +1,12 @@
-FROM debian:buster-slim
+FROM debian:bullseye-slim
 
 ARG aptcacher
-ARG VERSION=3.12.0-1
+ARG VERSION=3.12.4
 ARG TZ=America/Chicag
 
 LABEL maintainer="edgd1er <edgd1er@htomail.com>" \
       org.label-schema.build-date=$BUILD_DATE \
-      org.label-schema.name="Ripper" \
+      org.label-schema.name="nordlynx-proxy" \
       org.label-schema.description="Provides VPN through NordVpn application." \
       org.label-schema.url="https://hub.docker.com/r/edgd1er/nordlynx-proxy" \
       org.label-schema.vcs-ref=$VCS_REF \
@@ -30,7 +30,7 @@ RUN if [[ -n "${aptcacher}" ]]; then echo "Acquire::http::Proxy \"http://${aptca
     ca-certificates tzdata dante-server net-tools tinyproxy\
     # nordvpn requirements
     iproute2 iptables readline-common dirmngr gnupg gnupg-l10n gnupg-utils gpg gpg-agent gpg-wks-client \
-    gpg-wks-server gpgconf gpgsm libassuan0 libksba8 libnpth0 libreadline7 libsqlite3-0 lsb-base pinentry-curses   && \
+    gpg-wks-server gpgconf gpgsm libassuan0 libksba8 libnpth0 libreadline8 libsqlite3-0 lsb-base pinentry-curses   && \
     wget -nv -t10 -O /tmp/nordrepo.deb https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/nordvpn-release_1.0.0_all.deb && \
     apt-get install -qqy --no-install-recommends /tmp/nordrepo.deb && apt-get update && \
     apt-get install -qqy --no-install-recommends -y nordvpn="${VERSION}" && \
