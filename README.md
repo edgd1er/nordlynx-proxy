@@ -27,7 +27,7 @@ Added docker image version for raspberry.
 
 Whenever the connection is lost, nordvpn client has a killswitch to obliterate the connection.
 
-current nordvpn application version: 3.12.0-1
+current nordvpn application version: 3.12.5
 
 ## What is this?
 
@@ -64,9 +64,7 @@ sysclts:
  ```
   might be needed, if nordvpn cannot change the settings itself.
 
-
-
-* TECHNOLOGY=[NordLynx]/[OpenVPN], default: NordLynx
+* TECHNOLOGY=[NordLynx]/[OpenVPN], default: NordLynx (wireguard like)
 * CONNECT = [country]/[server]/[country_code]/[city] or [country] [city], if none provide you will connect to the recommended server.
 * [COUNTRY](https://api.nordvpn.com/v1/servers/countries) define the exit country.
 * [GROUP](https://api.nordvpn.com/v1/servers/groups): Africa_The_Middle_East_And_India, Asia_Pacific, Europe, Onion_Over_VPN, P2P, Standard_VPN_Servers, The_Americas, although many categories are possible, p2p seems more adapted.
@@ -116,14 +114,11 @@ services:
       - DANTE_ERRORLOG=/dev/stdout #Optional, /dev/null by default
       - DANTE_DEBUG=0 # Optional, 0-9
     secrets:
-      - NORDVPN_LOGIN
-      - NORDVPN_PASS
+      - NORDVPN_CREDS
 
 secrets:
-    NORDVPN_LOGIN:
-        file: ./nordvpn_login
-    NORDVPN_PASS:
-        file: ./nordvpn_pwd
+    NORDVPN_CREDS:
+        file: ./nordvpn_creds #file with username in 1st line, passwd in last line.
 ```
 
 

@@ -2,3 +2,4 @@ nord*
 *.yml
 Makefile
 *.iml
+.github

@@ -8,24 +8,22 @@ COUNTRY=${COUNTRY:-''}
 CONNECT=${CONNECT:-''}
 GROUP=${GROUP:-''}
 IPV6=${IPV6:-'off'}
-[[ -n ${COUNTRY} && -z ${CONNECT} ]] && CONNECT=${COUNTRY} && export ${CONNECT}
+[[ -n ${COUNTRY} && -z ${CONNECT} ]] && export CONNECT=${COUNTRY}
 [[ "${GROUPID:-''}" =~ ^[0-9]+$ ]] && groupmod -g $GROUPID -o vpn
 [[ -n ${GROUP} ]] && GROUP="--group ${GROUP}"
 #get container network (class B) to whitelist container subnet:  ${LOCALNET}.0.0/16
 LOCALNET=$(hostname -i | grep -Eom1 "(^[0-9]{1,3}\.[0-9]{1,3})")
 
-[[ "false" == ${DEBUG} ]] && export DEBUG=0
-[[ "true" == ${DEBUG} ]] && export DEBUG=1
+[[ "true" == ${DEBUG} ]] && export DEBUG=1 || true
 
 if [[ 1 -eq ${DEBUG} ]]; then
   set -x
-  #set DANTE_DEBUG onl if not already set
+  #set DANTE_DEBUG only if not already set
   [[ -z ${DANTE_DEBUG:-''} ]] && export DANTE_DEBUG=9
 else
   #set DANTE_DEBUG onl if not already set
   DANTE_DEBUG=${DANTE_DEBUG:-0}
 fi
-
 
 . /app/date.sh --source-only
 
@@ -166,9 +164,12 @@ while [ ! -S ${RDIR}/nordvpnd.sock ]; do
 done
 
 #Use secrets if present
-if [ -e /run/secrets/NORDVPN_LOGIN ]; then
-  NORDVPN_LOGIN=$(cat /run/secrets/NORDVPN_LOGIN)
-  NORDVPN_PASS=$(cat /run/secrets/NORDVPN_PASS)
+#Use secrets if present
+set +x
+if [ -e /run/secrets/NORDVPN_CREDS ]; then
+  NORDVPN_LOGIN=$(head -1 /run/secrets/NORDVPN_CREDS)
+  NORDVPN_PASS=$(tail -1 /run/secrets/NORDVPN_CREDS)
+  [[ "${NORDVPN_LOGIN}" == "${NORDVPN_PASS}" ]] && log "ERROR, credentials shoud have two lines (login/password), one found." && exit
 fi
 
 if [ -z ${NORDVPN_LOGIN} ] || [ -z ${NORDVPN_PASS} ]; then

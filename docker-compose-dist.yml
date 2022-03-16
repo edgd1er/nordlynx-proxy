@@ -22,11 +22,8 @@ services:
       - NORDVPN_USER=<email> #Not required if using secrets
       - NORDVPN_PASS=<pass> #Not required if using secrets
     secrets:
-      - NORDVPN_LOGIN
-      - NORDVPN_PASS
+      - NORDVPN_CREDS
 
 secrets:
-  NORDVPN_LOGIN:
-    file: ./nordvpn_login
-  NORDVPN_PASS:
-    file: ./nordvpn_pwd
+  NORDVPN_CREDS:
+    file: ./nordvpn_creds
