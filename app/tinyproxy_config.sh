@@ -17,7 +17,7 @@ INT_IP=$(ip addr show eth0 | grep -oE 'inet [^/]+' | cut -f2 -d' ')
 log "INFO: TINYPROXY: set configuration INT_IP: ${INT_IP}/ EXT_IP: ${EXT_IP}"
 sed "s/TINYPORT/${TINYPORT}/" ${SOURCE_CONF} > ${CONF}
 sed -i "s/TINYLOGLEVEL/${TINYLOGLEVEL}/" ${CONF}
-sed -i "s/#Listen .*/Listen ${INT_IP}/" ${CONF}
+sed -i -r "s/#?Listen/Listen ${INT_IP}/" ${CONF}
 
 #Allow only local network or all private address ranges
 if [[ -n ${LOCAL_NETWORK} ]];then
