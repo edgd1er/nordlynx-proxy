@@ -14,6 +14,6 @@ jobs:
       - name: checkout code
         uses: actions/checkout@v3
       - name: hadolint
-        uses: hadolint/hadolint-action@v1.7.0
+        uses: hadolint/hadolint-action@v2.0.0
         with:
           dockerfile: ./Dockerfile
