@@ -1,7 +1,7 @@
 FROM debian:bullseye-slim
 
 ARG aptcacher
-ARG VERSION=3.12.4
+ARG VERSION=3.12.5
 ARG TZ=America/Chicag
 
 LABEL maintainer="edgd1er <edgd1er@htomail.com>" \

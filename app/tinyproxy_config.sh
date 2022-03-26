@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 set -e -u -o pipefail
 
-[[ ${DEBUG:-0} -eq 1 ]] && set -x
 #Variables
+DEBUG=${DEBUG:-0}
+[[ 1 -eq ${DEBUG} ]] && set -x
 . /app/date.sh --source-only
 SOURCE_CONF=/etc/tinyproxy.conf.tmpl
 CONF=/etc/tinyproxy/tinyproxy.conf
@@ -28,4 +29,5 @@ else
     sed -i "s!#Allow 192!Allow 192!" ${CONF}
 fi
 
+#show Conf
 [[ 1 -eq ${DEBUG} ]] && grep -vE "(^#|^$)" ${CONF} || true
