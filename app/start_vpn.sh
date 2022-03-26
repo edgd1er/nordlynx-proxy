@@ -100,7 +100,7 @@ setup_nordvpn() {
   [[ -n ${PORTS:-''} ]] && for port in ${PORTS//[;,]/ }; do nordvpn whitelist add port ${port}; done
   [[ ${DEBUG} ]] && nordvpn -version && nordvpn settings
   nordvpn whitelist add subnet ${LOCALNET}.0.0/16
-  if [[ -n ${LOCAL_NETWORK} ]]; then
+  if [[ -n ${LOCAL_NETWORK:-''} ]]; then
     nordvpn whitelist add subnet ${LOCAL_NETWORK}
     eval $(/sbin/ip route list match 0.0.0.0 | awk '{if($5!="tun0"){print "GW="$3"\nINT="$5; exit}}')
     echo "LOCAL_NETWORK: ${LOCAL_NETWORK}, Gateway: ${GW}, device ${INT}"

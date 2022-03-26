@@ -1,7 +1,7 @@
 version: '3.8'
 services:
   proxy:
-    image: edgd1er/nordvpn-proxy:latest
+    image: edgd1er/nordlynx-proxy:latest
     restart: unless-stopped
     ports:
       - "1080:1080" #socks proxy port
@@ -14,13 +14,22 @@ services:
       - NET_ADMIN               # Required
     environment:
       - TZ=America/Chicago
-      - COUNTRY=uk
-      - GROUP=P2P
-      - CYBER_SEC=off
-      - TECHNOLOGY=NordLynx
-      - DEBUG=false
-      - NORDVPN_USER=<email> #Not required if using secrets
-      - NORDVPN_PASS=<pass> #Not required if using secrets
+        #- CONNECT= #Optionnal, override COUNTRY, specify country+serveur number like uk715
+        - COUNTRY=de #Optional, by default, servers in user's coyntry.
+        - GROUP=P2P #Africa_The_Middle_East_And_India, Asia_Pacific, Europe, Onion_Over_VPN, P2P, Standard_VPN_Servers, The_Americas
+        #- KILLERSWITCH=on #Optional, on by default, kill Switch is a feature helping you prevent unprotected access to the internet when your traffic doesn't go through a NordVPN server.
+        #- CYBER_SEC=off #CyberSec is a feature protecting you from ads, unsafe connections, and malicious sites
+        - TECHNOLOGY=NordLynx #openvpn or nordlynx
+        #- IPV6=off #optional, off by default, on/off available, off disable IPV6 in nordvpn app
+        #- NORDVPN_USER=<email> #Not required if using secrets
+        #- NORDVPN_PASS=<pass> #Not required if using secrets
+        #- DEBUG=0 #(0/1) activate debug mode for scripts, dante, tinproxy
+        #- LOCAL_NETWORK=192.168.53.0/24 #LAN to route through proxies and vpn.
+        #- TINYLOGLEVEL=error #Optional, default error: Critical (least verbose), Error, Warning, Notice, Connect (to log connections without Info's noise), Info
+        #- TINYPORT=8888 #define tinyport inside the container, optional, 8888 by default,
+        #- DANTE_LOGLEVEL="error" #Optional, error by default, available values: connect disconnect error data
+        - DANTE_ERRORLOG=/dev/stdout #Optional, /dev/null by default
+      #- DANTE_DEBUG=0 # Optional, 0-9
     secrets:
       - NORDVPN_CREDS
 

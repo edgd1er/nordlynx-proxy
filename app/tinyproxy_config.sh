@@ -20,7 +20,7 @@ sed -i "s/TINYLOGLEVEL/${TINYLOGLEVEL}/" ${CONF}
 sed -i -r "s/#?Listen/Listen ${INT_IP}/" ${CONF}
 
 #Allow only local network or all private address ranges
-if [[ -n ${LOCAL_NETWORK} ]];then
+if [[ -n ${LOCAL_NETWORK:-''} ]];then
     sed -i "s!#Allow LOCAL_NETWORK!Allow ${LOCAL_NETWORK}!" ${CONF}
 else
     sed -i "s!#Allow 10!Allow 10!" ${CONF}
