@@ -13,6 +13,7 @@ IPV6=${IPV6:-'off'}
 [[ -n ${GROUP} ]] && GROUP="--group ${GROUP}"
 #get container network (class B) to whitelist container subnet:  ${LOCALNET}.0.0/16
 LOCALNET=$(hostname -i | grep -Eom1 "(^[0-9]{1,3}\.[0-9]{1,3})")
+GENERATE_WIREGUARD_CONF=${GENERATE_WIREGUARD_CONF:-"false"}
 
 [[ "true" == ${DEBUG} ]] && export DEBUG=1 || true
 
@@ -28,6 +29,16 @@ fi
 . /app/date.sh --source-only
 
 ##Functions
+fatal_error() {
+  #printf "${TIME_FORMAT} \e[41mERROR:\033[0m %b\n" "$*" >&2
+  printf "\e[41mERROR:\033[0m %b\n" "$*" >&2
+  exit 1
+}
+
+log() {
+  echo "$(date +"%Y-%m-%d %T"): $*"
+}
+
 setTimeZone() {
   [[ ${TZ} == $(cat /etc/timezone) ]] && return
   log "INFO: Setting timezone to ${TZ}"
@@ -55,13 +66,13 @@ setIPV6() {
 }
 
 checkLatest() {
-  res=$(curl -ks https://nordvpn.com/en/blog/nordvpn-linux-release-notes/)
+  res=$(curl -LSs https://nordvpn.com/en/blog/nordvpn-linux-release-notes/)
   [[ -z $res ]] && return 1
   CANDIDATE=$(echo ${res} | grep -oP "NordVPN \K[0-9]\.[0-9]{1,2}" | head -1)
-  [[ "" == ${CANDIDATE} ]] && return 1
-  VERSION=$(nordvpn version | grep -oP "NordVPN Version \K.+")
+  [[ -z ${CANDIDATE} ]] && return 1
+  VERSION=$(dpkg-query --showformat='${Version}' --show nordvpn)
   if [[ ${VERSION} =~ ${CANDIDATE} ]]; then
-    log "INFO: No update needed for nordvpn (${VERSION})"
+    log "INFO: checkLatest: No update needed for nordvpn (${VERSION})"
   else
     log "**********************************************************************"
     log "WARNING: please update nordvpn from version ${VERSION} to ${CANDIDATE}"
@@ -81,7 +92,7 @@ checkLatestApt() {
     log "WARNING: please update nordvpn from version ${VERSION} to ${CANDIDATE}"
     log "**********************************************************************"
   else
-    log "INFO: No update needed for nordvpn (${VERSION})"
+    log "INFO: checkLatestApt: No update needed for nordvpn (${VERSION})"
   fi
 }
 
@@ -115,21 +126,26 @@ setup_nordvpn() {
   fi
 }
 
-mkTun(){
-# Create a tun device see: https://www.kernel.org/doc/Documentation/networking/tuntap.txt
-if [ ! -c /dev/net/tun ]; then
+mkTun() {
+  # Create a tun device see: https://www.kernel.org/doc/Documentation/networking/tuntap.txt
+  if [ ! -c /dev/net/tun ]; then
     log "INFO: OVPN: Creating tun interface /dev/net/tun"
     mkdir -p /dev/net
     mknod /dev/net/tun c 10 200
     chmod 600 /dev/net/tun
-fi
+  fi
+}
+
+extractLynxConf() {
+  wg showconf nordlynx >/etc/wireguard/wg0.conf
+  chmod 600 /etc/wireguard/wg0.conf
+  log "Wireguard configuration written to /etc/wireguard/wg0.conf"
 }
 
 #Main
 #Overwrite docker dns as it may fail with specific configuration (dns on server/container crash)
 echo "nameserver 1.1.1.1" >/etc/resolv.conf
 setTimeZone
-
 
 #log all if required: IPTABLES_LOG=1
 if [[ -f /app/logAll.sh ]]; then
@@ -143,7 +159,7 @@ fi
 [[ ! -d ${RDIR} ]] && mkdir -p ${RDIR}
 
 #make /dev/tun if missing
-mkTun
+[[ ${TECHNOLOGY} =~ nordlynx ]] && mkTun || true
 set_iptables DROP
 set_iptables ACCEPT
 
@@ -153,9 +169,6 @@ isRunning=$(supervisorctl status nordvpnd | grep -c RUNNING) || true
 [[ 0 -le ${isRunning} ]] && action=restart
 supervisorctl ${action} nordvpnd
 sleep 4
-#need daemon to be up, check if installed nordvpn app is the latest available
-checkLatest
-[[ 1 -eq $? ]]  && checkLatestApt
 #start nordvpn daemon
 while [ ! -S ${RDIR}/nordvpnd.sock ]; do
   log "WARNING: NORDVPN: restart nordvpn daemon as no socket was found"
@@ -164,12 +177,13 @@ while [ ! -S ${RDIR}/nordvpnd.sock ]; do
 done
 
 #Use secrets if present
-#Use secrets if present
-set +x
 if [ -e /run/secrets/NORDVPN_CREDS ]; then
-  NORDVPN_LOGIN=$(head -1 /run/secrets/NORDVPN_CREDS)
-  NORDVPN_PASS=$(tail -1 /run/secrets/NORDVPN_CREDS)
-  [[ "${NORDVPN_LOGIN}" == "${NORDVPN_PASS}" ]] && log "ERROR, credentials shoud have two lines (login/password), one found." && exit
+  mapfile -t -n 2 vars </run/secrets/NORDVPN_CREDS
+  if [[ ${#vars[*]} -eq 2 ]] || [[ ${vars[0]} == ${vars[1]} ]]; then
+    fatal_error "OVPN: openVPN login and password are identical and/or missing. Exiting"
+  fi
+  NORDVPN_LOGIN=${vars[0]}
+  NORDVPN_PASS=${vars[1]}
 fi
 
 if [ -z ${NORDVPN_LOGIN} ] || [ -z ${NORDVPN_PASS} ]; then
@@ -200,9 +214,18 @@ if [[ "${res}" != *"You are connected to"* ]]; then
   log "INFO: NORDVPN: connecting to ${CONNECT}"
   [[ "${res}" != *"You are connected to"* ]] && log "ERROR: NORDVPN: cannot connect to ${CONNECT}" && exit 1
 fi
-nordvpn status
+status=$(nordvpn status)
+server=$(echo -e "${status}" |grep -oP "(?<=server: ).+")
+serverIp=$(echo -e "${status}"| grep -oP "(?<=IP: ).+")
+[[ ${GENERATE_WIREGUARD_CONF} == true ]] && [[ ${TECHNOLOGY} == NordLynx ]] && extractLynxConf
 
-log "INFO: current WAN IP: $(curl -s 'https://api.ipify.org?format=json' | jq .ip)"
+#check if installed nordvpn app is the latest available
+checkLatest
+[[ 1 -eq $? ]] && checkLatestApt
+
+echo -e "${status}"
+curip=$(curl -s 'https://api.ipify.org?format=json' | jq .ip)
+log "INFO: detected WAN IP: ${curip} / nordvpn status: ${serverIp} = ${server}"
 
 log "INFO: DANTE: generate configuration"
 /app/dante_config.sh
@@ -223,4 +246,3 @@ supervisorctl start dante
 sleep 2
 log "INFO: TINYPROXY: starting"
 supervisorctl start tinyproxy
-

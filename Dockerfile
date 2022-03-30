@@ -2,7 +2,7 @@ FROM debian:bullseye-slim
 
 ARG aptcacher
 ARG VERSION=3.12.5
-ARG TZ=America/Chicag
+ARG TZ=America/Chicago
 
 LABEL maintainer="edgd1er <edgd1er@htomail.com>" \
       org.label-schema.build-date=$BUILD_DATE \
@@ -16,6 +16,7 @@ LABEL maintainer="edgd1er <edgd1er@htomail.com>" \
 
 ENV TZ=${TZ}
 ENV DEBIAN_FRONTEND=noninteractive
+ENV GENERATE_WIREGUARD_CONF=false
 
 COPY etc/ /etc/
 COPY app/ /app/
@@ -27,7 +28,7 @@ RUN if [[ -n "${aptcacher}" ]]; then echo "Acquire::http::Proxy \"http://${aptca
     echo "Acquire::https::Proxy \"http://${aptcacher}:3142\";" >>/etc/apt/apt.conf.d/01proxy ; fi; \
     apt-get update && export DEBIAN_FRONTEND=non-interactive && \
     apt-get -o Dpkg::Options::="--force-confold" install --no-install-recommends -qqy supervisor wget curl jq \
-    ca-certificates tzdata dante-server net-tools tinyproxy\
+    ca-certificates tzdata dante-server net-tools tinyproxy wireguard wireguard-tools \
     # nordvpn requirements
     iproute2 iptables readline-common dirmngr gnupg gnupg-l10n gnupg-utils gpg gpg-agent gpg-wks-client \
     gpg-wks-server gpgconf gpgsm libassuan0 libksba8 libnpth0 libreadline8 libsqlite3-0 lsb-base pinentry-curses   && \
