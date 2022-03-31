@@ -14,7 +14,8 @@ Warning 1: login process is unstable:
 It's not you, it's us. We're having trouble reaching our servers. If the issue persists, please contact our customer support.
 ```
 
-Warning 2: soon this image might be usable due to login/password process deprecation, replaced by nordaccount: 
+Warning 2: Edited: this warning is not present anymore. 
+Soon this image might be unusable due to login/password process deprecation, replaced by nordaccount: 
 ```
 Password login is deprecated.
 'nordvpn login --nordaccount' will become the default login method in the future.
@@ -22,8 +23,7 @@ Password login is deprecated.
 
 Warning 3: At the moment, the container is not set to run with generated wireguard config file. (healtcheck, start checks, switch from nordvpn to wireguard tools) 
 
-
-This is a NordVPN docker container that connects to the NordVPN recommended servers through nordvpn client, and starts both a SOCKS5 proxy (dante) and an http proxy. Upon connection, the wireguard configuration is saved to `/etc/wireguard/wg0.conf` if required `GENERATE_WIREGUARD_CONF=true`. This file can be exported then re-used to setup a plain wireguard connection. 
+This is a NordVPN docker container that connects to the NordVPN recommended servers through nordvpn client, and starts both a SOCKS5 proxy (dante) and an http proxy. Upon connection, the wireguard configuration is saved to `/etc/wireguard/wg0.conf` if required `GENERATE_WIREGUARD_CONF=true`. This file can be exported then re-used to setup a plain wireguard connection. After this operation, 317 MB of additional disk space will be used. 
 Openvpn and nordlynx technology are available.
 
 Added docker image version for raspberry.  
@@ -35,6 +35,10 @@ current nordvpn application version: `3.12.5`
 tests:
 * https://www.dnsleaktest.com/results.html
 * https://ipleak.net/
+* https://browserleaks.com/webrtc
+
+**Please note that webrtc will leak your real IP. You need to disable webrtc or install nordvpn's extension.**
+https://browserleaks.com/webrtc#howto-disable-webrtc
 
 ## What is this?
 

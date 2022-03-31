@@ -8,6 +8,7 @@ COUNTRY=${COUNTRY:-''}
 CONNECT=${CONNECT:-''}
 GROUP=${GROUP:-''}
 IPV6=${IPV6:-'off'}
+TECHNOLOGY=${TECHNOLOGY:-'nordlynx'}
 [[ -n ${COUNTRY} && -z ${CONNECT} ]] && export CONNECT=${COUNTRY}
 [[ "${GROUPID:-''}" =~ ^[0-9]+$ ]] && groupmod -g $GROUPID -o vpn
 [[ -n ${GROUP} ]] && GROUP="--group ${GROUP}"
@@ -66,7 +67,7 @@ setIPV6() {
 }
 
 checkLatest() {
-  res=$(curl -LSs https://nordvpn.com/en/blog/nordvpn-linux-release-notes/)
+  res=$(curl -LSs "https://nordvpn.com/en/blog/nordvpn-linux-release-notes/" )
   [[ -z $res ]] && return 1
   CANDIDATE=$(echo ${res} | grep -oP "NordVPN \K[0-9]\.[0-9]{1,2}" | head -1)
   [[ -z ${CANDIDATE} ]] && return 1
@@ -86,7 +87,7 @@ checkLatestApt() {
   VERSION=$(apt-cache policy nordvpn | grep -oP "Installed: \K.+")
   CANDIDATE=$(apt-cache policy nordvpn | grep -oP "Candidate: \K.+")
   CANDIDATE=${CANDIDATE:-${VERSION}}
-  if [[ ${CANDIDATE} != ${VERSION} ]]; then
+  if [[ ${CANDIDATE} != "${VERSION}" ]]; then
     log "**********************************************************************"
     log "WARNING: please update nordvpn from version ${VERSION} to ${CANDIDATE}"
     log "WARNING: please update nordvpn from version ${VERSION} to ${CANDIDATE}"
@@ -137,9 +138,18 @@ mkTun() {
 }
 
 extractLynxConf() {
-  wg showconf nordlynx >/etc/wireguard/wg0.conf
-  chmod 600 /etc/wireguard/wg0.conf
-  log "Wireguard configuration written to /etc/wireguard/wg0.conf"
+  [[ ${GENERATE_WIREGUARD_CONF} != true ]] && return || true
+  if [[ ${TECHNOLOGY,,} != nordlynx ]]; then
+    log "Info: NORDPVN: Connection is not a Nordlynx (wireguard) type. Cannot extract wireguard information"
+    return
+  fi
+  if [[ -z $(command -v wg) ]]; then
+    log "Error: NORDPVN: wireguard kernel and tools not installed. installing required packages, using additionnal 317 MB of disk space."
+    apt-get update && apt-get install -y --no-install-recommends wireguard wireguard-tools
+  fi
+    wg showconf nordlynx >/etc/wireguard/wg0.conf
+    chmod 600 /etc/wireguard/wg0.conf
+    log "Wireguard configuration written to /etc/wireguard/wg0.conf"
 }
 
 #Main
@@ -179,7 +189,7 @@ done
 #Use secrets if present
 if [ -e /run/secrets/NORDVPN_CREDS ]; then
   mapfile -t -n 2 vars </run/secrets/NORDVPN_CREDS
-  if [[ ${#vars[*]} -eq 2 ]] || [[ ${vars[0]} == ${vars[1]} ]]; then
+  if [[ ${#vars[*]} -ne 2 ]] || [[ ${vars[0]} == ${vars[1]} ]]; then
     fatal_error "OVPN: openVPN login and password are identical and/or missing. Exiting"
   fi
   NORDVPN_LOGIN=${vars[0]}
@@ -215,9 +225,9 @@ if [[ "${res}" != *"You are connected to"* ]]; then
   [[ "${res}" != *"You are connected to"* ]] && log "ERROR: NORDVPN: cannot connect to ${CONNECT}" && exit 1
 fi
 status=$(nordvpn status)
-server=$(echo -e "${status}" |grep -oP "(?<=server: ).+")
-serverIp=$(echo -e "${status}"| grep -oP "(?<=IP: ).+")
-[[ ${GENERATE_WIREGUARD_CONF} == true ]] && [[ ${TECHNOLOGY} == NordLynx ]] && extractLynxConf
+server=$(echo -e "${status}" | grep -oP "(?<=server: ).+")
+serverIp=$(echo -e "${status}" | grep -oP "(?<=IP: ).+")
+extractLynxConf
 
 #check if installed nordvpn app is the latest available
 checkLatest
