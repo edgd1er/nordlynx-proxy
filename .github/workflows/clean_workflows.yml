@@ -3,6 +3,12 @@ on:
   schedule:
     - cron: "0 8 * * *"
   workflow_dispatch:
+    inputs:
+      DRY:
+        type: boolean
+        description: dry run to clean workflows
+        required: true
+        default: false
 
 jobs:
   clean_old_workflow:
@@ -17,7 +23,7 @@ jobs:
           save_period: 30
           dry: ${{ env.DRY }}
 
-      - name: Delete workflow runs
+      - name: Delete failed workflow
         uses: dmvict/clean-workflow-runs@v1.0.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}

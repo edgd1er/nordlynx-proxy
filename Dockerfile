@@ -1,8 +1,9 @@
 FROM debian:bullseye-slim
 
 ARG aptcacher
-ARG VERSION=3.12.4
-ARG TZ=America/Chicag
+ARG VERSION=3.12.5
+ARG TZ=America/Chicago
+ARG WG=false
 
 LABEL maintainer="edgd1er <edgd1er@htomail.com>" \
       org.label-schema.build-date=$BUILD_DATE \
@@ -16,6 +17,7 @@ LABEL maintainer="edgd1er <edgd1er@htomail.com>" \
 
 ENV TZ=${TZ}
 ENV DEBIAN_FRONTEND=noninteractive
+ENV GENERATE_WIREGUARD_CONF=false
 
 COPY etc/ /etc/
 COPY app/ /app/
@@ -23,22 +25,24 @@ COPY app/ /app/
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 #add apt-cacher setting if present:
 #hadolint ignore=DL3018,DL3008
-RUN if [[ -n "${aptcacher}" ]]; then echo "Acquire::http::Proxy \"http://${aptcacher}:3142\";" >/etc/apt/apt.conf.d/01proxy && \
-    echo "Acquire::https::Proxy \"http://${aptcacher}:3142\";" >>/etc/apt/apt.conf.d/01proxy ; fi; \
-    apt-get update && export DEBIAN_FRONTEND=non-interactive && \
-    apt-get -o Dpkg::Options::="--force-confold" install --no-install-recommends -qqy supervisor wget curl jq \
-    ca-certificates tzdata dante-server net-tools tinyproxy\
+RUN if [[ -n "${aptcacher}" ]]; then echo "Acquire::http::Proxy \"http://${aptcacher}:3142\";" >/etc/apt/apt.conf.d/01proxy \
+    && echo "Acquire::https::Proxy \"http://${aptcacher}:3142\";" >>/etc/apt/apt.conf.d/01proxy ; fi \
+    && apt-get update && export DEBIAN_FRONTEND=non-interactive \
+    && apt-get -o Dpkg::Options::="--force-confold" install --no-install-recommends -qqy supervisor wget curl jq \
+    ca-certificates tzdata dante-server net-tools tinyproxy \
     # nordvpn requirements
     iproute2 iptables readline-common dirmngr gnupg gnupg-l10n gnupg-utils gpg gpg-agent gpg-wks-client \
-    gpg-wks-server gpgconf gpgsm libassuan0 libksba8 libnpth0 libreadline8 libsqlite3-0 lsb-base pinentry-curses   && \
-    wget -nv -t10 -O /tmp/nordrepo.deb https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/nordvpn-release_1.0.0_all.deb && \
-    apt-get install -qqy --no-install-recommends /tmp/nordrepo.deb && apt-get update && \
-    apt-get install -qqy --no-install-recommends -y nordvpn="${VERSION}" && \
-    apt-get remove -y wget nordvpn-release && find /etc/apt/ -iname "*.list" -exec cat {} \; && echo && \
-    mkdir -p /run/nordvpn && chmod a+x /app/*.sh && \
-    addgroup --system vpn && useradd -lNms /usr/bash -u "${NUID:-1000}" -G nordvpn,vpn nordclient  && \
-    apt-get clean all && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
-    if [[ -n "${aptcacher}" ]]; then rm /etc/apt/apt.conf.d/01proxy; fi;
+    gpg-wks-server gpgconf gpgsm libassuan0 libksba8 libnpth0 libreadline8 libsqlite3-0 lsb-base pinentry-curses \
+    #wireguard
+    && if [[ ${WG} != false ]]; then apt-get -o Dpkg::Options::="--force-confold" install -y --no-install-recommends wireguard wireguard-tools; fi \
+    && wget -nv -t10 -O /tmp/nordrepo.deb https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/nordvpn-release_1.0.0_all.deb \
+    && apt-get install -qqy --no-install-recommends /tmp/nordrepo.deb && apt-get update \
+    && apt-get install -qqy --no-install-recommends -y nordvpn="${VERSION}" \
+    && apt-get remove -y wget nordvpn-release && find /etc/apt/ -iname "*.list" -exec cat {} \; && echo \
+    && mkdir -p /run/nordvpn && chmod a+x /app/*.sh \
+    && addgroup --system vpn && useradd -lNms /usr/bash -u "${NUID:-1000}" -G nordvpn,vpn nordclient \
+    && apt-get clean all && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+    && if [[ -n "${aptcacher}" ]]; then rm /etc/apt/apt.conf.d/01proxy; fi;
 
 HEALTHCHECK --interval=5m --timeout=20s --start-period=1m CMD /app/healthcheck.sh
 
