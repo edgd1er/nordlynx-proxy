@@ -30,7 +30,7 @@ Added docker image version for raspberry.
 
 Whenever the connection is lost, nordvpn client has a killswitch to obliterate the connection.
 
-current nordvpn application version: `3.12.5`
+current nordvpn application version: `3.13.0`
 
 tests:
 * https://www.dnsleaktest.com/results.html

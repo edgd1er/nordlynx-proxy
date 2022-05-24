@@ -1,7 +1,6 @@
 FROM debian:bullseye-slim
-
 ARG aptcacher
-ARG VERSION=3.12.5
+ARG VERSION=3.13.0
 ARG TZ=America/Chicago
 ARG WG=false
 
