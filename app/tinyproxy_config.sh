@@ -11,8 +11,8 @@ TINYPORT=${TINYPORT:-8888}
 #Critical (least verbose), Error, Warning, Notice, Connect (to log connections without Info's noise), Info
 TINYLOGLEVEL=${TINYLOGLEVEL:-Error}
 TINYLOGLEVEL=${TINYLOGLEVEL//\"/}
-EXT_IP=$(ip addr show nordlynx | grep -oE 'inet [^/]+' | cut -f2 -d' ')
-INT_IP=$(ip addr show eth0 | grep -oE 'inet [^/]+' | cut -f2 -d' ')
+EXT_IP=$(ip -4 a show nordlynx | grep -oP "(?<=inet )([^/]+)")
+INT_IP=$(ip -4  a show eth0| grep -oP "(?<=inet )([^/]+)")
 INT_CIDR=$(ip -j a show eth0 | jq  -r '.[].addr_info[0]|"\( .local)/\(.prefixlen)"')
 
 #Main
