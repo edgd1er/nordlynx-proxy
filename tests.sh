@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 
 #var
-PROXY_HOST="holdom3.mission.lan"
-#PROXY_HOST="localhost"
+PROXY_HOST="localhost"
 HTTP_PORT=9888
 SOCK_PORT=2081
 FAILED=0
@@ -28,7 +27,9 @@ runandWait() {
 }
 
 #Main
-[[ "localhost" == ${PROXY_HOST} ]] && runandWait || true
+if [[ "localhost" =~ ${PROXY_HOST} ]]; then
+  runandWait
+fi
 
 for PORT in ${HTTP_PORT} ${SOCK_PORT}; do
   msg="Test connection to port ${PORT}: "
