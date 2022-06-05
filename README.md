@@ -9,6 +9,8 @@
 
 # nordlynx-proxy
 
+current nordvpn application version: `3.14.0`
+
 Warning 1: login process is unstable: 
 ```
 It's not you, it's us. We're having trouble reaching our servers. If the issue persists, please contact our customer support.
@@ -30,7 +32,6 @@ Added docker image version for raspberry.
 
 Whenever the connection is lost, nordvpn client has a killswitch to obliterate the connection.
 
-current nordvpn application version: `3.13.0`
 
 tests:
 * https://www.dnsleaktest.com/results.html
