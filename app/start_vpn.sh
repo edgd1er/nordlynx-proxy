@@ -2,50 +2,10 @@
 
 set -u -o pipefail
 
-RDIR=/run/nordvpn
-DEBUG=${DEBUG:-0}
-COUNTRY=${COUNTRY:-''}
-CONNECT=${CONNECT:-''}
-GROUP=${GROUP:-''}
-IPV6=${IPV6:-'off'}
-TECHNOLOGY=${TECHNOLOGY:-'nordlynx'}
-[[ -n ${COUNTRY} && -z ${CONNECT} ]] && export CONNECT=${COUNTRY}
-[[ "${GROUPID:-''}" =~ ^[0-9]+$ ]] && groupmod -g $GROUPID -o vpn
-[[ -n ${GROUP} ]] && GROUP="--group ${GROUP}"
-#get container network (class B) to whitelist container subnet:  ${LOCALNET}.0.0/16
-LOCALNET=$(hostname -i | grep -Eom1 "(^[0-9]{1,3}\.[0-9]{1,3})")
-GENERATE_WIREGUARD_CONF=${GENERATE_WIREGUARD_CONF:-"false"}
-
-[[ "true" == ${DEBUG} ]] && export DEBUG=1 || true
-
-if [[ 1 -eq ${DEBUG} ]]; then
-  set -x
-  #set DANTE_DEBUG only if not already set
-  [[ -z ${DANTE_DEBUG:-''} ]] && export DANTE_DEBUG=9
-else
-  #set DANTE_DEBUG onl if not already set
-  DANTE_DEBUG=${DANTE_DEBUG:-0}
-fi
-
-. /app/date.sh --source-only
-
 ##Functions
-fatal_error() {
-  #printf "${TIME_FORMAT} \e[41mERROR:\033[0m %b\n" "$*" >&2
-  printf "\e[41mERROR:\033[0m %b\n" "$*" >&2
-  exit 1
-}
-
-log() {
-  echo "$(date +"%Y-%m-%d %T"): $*"
-}
-
-setTimeZone() {
-  [[ ${TZ} == $(cat /etc/timezone) ]] && return
-  log "INFO: Setting timezone to ${TZ}"
-  ln -fs /usr/share/zoneinfo/${TZ} /etc/localtime
-  dpkg-reconfigure -fnoninteractive tzdata
-}
+source /app/utils.sh
+. /app/date.sh --source-only
+RDIR=/run/nordvpn
 
 set_iptables() {
   action=${1:-'DROP'}
@@ -57,6 +17,16 @@ set_iptables() {
   iptables -P OUTPUT ${action}
 }
 
+enforce_proxies_iptables() {
+
+  log "proxies: allow ports 1080, ${TINYPORT}"
+  nordvpn whitelist add port 1080 protocol tcp
+  nordvpn whitelist add port ${TINYPORT} protocol tcp
+
+  iptables -L
+
+}
+
 setIPV6() {
   if [[ 0 -eq $(grep -c "net.ipv6.conf.all.disable_ipv6" /etc/sysctl.conf) ]]; then
     echo "net.ipv6.conf.all.disable_ipv6 = ${1}" >/etc/sysctl.conf
@@ -64,37 +34,6 @@ setIPV6() {
     sed -i -E "s/net.ipv6.conf.all.disable_ipv6 = ./net.ipv6.conf.all.disable_ipv6 = ${1}/" /etc/sysctl.conf
   fi
   sysctl -p || true
-}
-
-checkLatest() {
-  res=$(curl -LSs "https://nordvpn.com/en/blog/nordvpn-linux-release-notes/" )
-  [[ -z $res ]] && return 1
-  CANDIDATE=$(echo ${res} | grep -oP "NordVPN \K[0-9]\.[0-9]{1,2}" | head -1)
-  [[ -z ${CANDIDATE} ]] && return 1
-  VERSION=$(dpkg-query --showformat='${Version}' --show nordvpn)
-  if [[ ${VERSION} =~ ${CANDIDATE} ]]; then
-    log "INFO: checkLatest: No update needed for nordvpn (${VERSION})"
-  else
-    log "**********************************************************************"
-    log "WARNING: please update nordvpn from version ${VERSION} to ${CANDIDATE}"
-    log "WARNING: please update nordvpn from version ${VERSION} to ${CANDIDATE}"
-    log "**********************************************************************"
-  fi
-}
-
-checkLatestApt() {
-  apt-get update
-  VERSION=$(apt-cache policy nordvpn | grep -oP "Installed: \K.+")
-  CANDIDATE=$(apt-cache policy nordvpn | grep -oP "Candidate: \K.+")
-  CANDIDATE=${CANDIDATE:-${VERSION}}
-  if [[ ${CANDIDATE} != "${VERSION}" ]]; then
-    log "**********************************************************************"
-    log "WARNING: please update nordvpn from version ${VERSION} to ${CANDIDATE}"
-    log "WARNING: please update nordvpn from version ${VERSION} to ${CANDIDATE}"
-    log "**********************************************************************"
-  else
-    log "INFO: checkLatestApt: No update needed for nordvpn (${VERSION})"
-  fi
 }
 
 #embedded in nordvpn client but not efficient in container. done in docker-compose
@@ -113,17 +52,18 @@ setup_nordvpn() {
   [[ ${DEBUG} ]] && nordvpn -version && nordvpn settings
   nordvpn whitelist add subnet ${LOCALNET}.0.0/16
   if [[ -n ${LOCAL_NETWORK:-''} ]]; then
-    nordvpn whitelist add subnet ${LOCAL_NETWORK}
     eval $(/sbin/ip route list match 0.0.0.0 | awk '{if($5!="tun0"){print "GW="$3"\nINT="$5; exit}}')
-    echo "LOCAL_NETWORK: ${LOCAL_NETWORK}, Gateway: ${GW}, device ${INT}"
+    log "LOCAL_NETWORK: ${LOCAL_NETWORK}, Gateway: ${GW}, device ${INT}"
     if [[ -n ${GW:-""} ]] && [[ -n ${INT:-""} ]]; then
       for localNet in ${LOCAL_NETWORK//,/ }; do
-        echo "adding route to local network ${localNet} via ${GW} dev ${INT}"
+        log "INFO: NORDVPN: whitelisting network ${localNet}"
+        nordvpn whitelist add subnet ${localNet}
+        log "INFO: NORDVPN: adding route to local network ${localNet} via ${GW} dev ${INT}"
         /sbin/ip route add "${localNet}" via "${GW}" dev "${INT}"
       done
     fi
   else
-    log "OPENVPN: undefined LOCAL_NETWORK, sockd and http proxies available only through 127.0.0.1 or 0.0.0.0"
+    log "WARNING: OVPN: undefined LOCAL_NETWORK, sockd and http proxies available only through 127.0.0.1 or 0.0.0.0"
   fi
 }
 
@@ -147,9 +87,9 @@ extractLynxConf() {
     log "Error: NORDPVN: wireguard kernel and tools not installed. installing required packages, using additionnal 317 MB of disk space."
     apt-get update && apt-get install -y --no-install-recommends wireguard wireguard-tools
   fi
-    wg showconf nordlynx >/etc/wireguard/wg0.conf
-    chmod 600 /etc/wireguard/wg0.conf
-    log "Wireguard configuration written to /etc/wireguard/wg0.conf"
+  wg showconf nordlynx >/etc/wireguard/wg0.conf
+  chmod 600 /etc/wireguard/wg0.conf
+  log "Wireguard configuration written to /etc/wireguard/wg0.conf"
 }
 
 #Main
@@ -170,8 +110,7 @@ fi
 
 #make /dev/tun if missing
 [[ ${TECHNOLOGY} =~ nordlynx ]] && mkTun || true
-set_iptables DROP
-set_iptables ACCEPT
+enforce_proxies_iptables
 
 log "INFO: NORDVPN: starting nordvpn daemon"
 action=start

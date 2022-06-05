@@ -1,6 +1,6 @@
 FROM debian:bullseye-slim
 ARG aptcacher
-ARG VERSION=3.13.0
+ARG VERSION=3.14.0
 ARG TZ=America/Chicago
 ARG WG=false
 
@@ -16,6 +16,17 @@ LABEL maintainer="edgd1er <edgd1er@htomail.com>" \
 
 ENV TZ=${TZ}
 ENV DEBIAN_FRONTEND=noninteractive
+ENV GENERATE_WIREGUARD_CONF=false
+ENV KILLERSWITCH=on
+ENV CYBER_SEC=off
+ENV TECHNOLOGY=NordLynx
+ENV IPV6=off
+ENV DEBUG=0
+ENV TINYLOGLEVEL=error
+ENV TINYPORT=8888
+ENV DANTE_LOGLEVEL="error"
+ENV DANTE_ERRORLOG=/dev/null
+ENV DANTE_DEBUG=0
 ENV GENERATE_WIREGUARD_CONF=false
 
 COPY etc/ /etc/
