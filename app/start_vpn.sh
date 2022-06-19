@@ -18,13 +18,11 @@ set_iptables() {
 }
 
 enforce_proxies_iptables() {
-
   log "proxies: allow ports 1080, ${TINYPORT}"
-  nordvpn whitelist add port 1080 protocol tcp
-  nordvpn whitelist add port ${TINYPORT} protocol tcp
-
+  nordvpn whitelist add port 1080 protocol TCP
+  nordvpn whitelist add port 1080 protocol UDP
+  nordvpn whitelist add port ${TINYPORT} protocol TCP
   iptables -L
-
 }
 
 setIPV6() {
@@ -169,8 +167,9 @@ serverIp=$(echo -e "${status}" | grep -oP "(?<=IP: ).+")
 extractLynxConf
 
 #check if installed nordvpn app is the latest available
-checkLatest
-[[ 1 -eq $? ]] && checkLatestApt
+# checkLatest
+#[[ 1 -eq $? ]] && checkLatestApt
+checkLatestApt
 
 echo -e "${status}"
 curip=$(curl -s 'https://api.ipify.org?format=json' | jq .ip)
