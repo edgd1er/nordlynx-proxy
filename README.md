@@ -9,7 +9,7 @@
 
 # nordlynx-proxy
 
-current nordvpn application version: `3.14.0`
+current nordvpn application version: `3.14.1`
 
 Warning 1: login process is unstable: 
 ```
