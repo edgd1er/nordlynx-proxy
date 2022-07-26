@@ -3,7 +3,6 @@ set -e -u -o pipefail
 
 #Variables
 source /app/utils.sh
-. /app/date.sh --source-only
 
 SOURCE_CONF=/etc/tinyproxy.conf.tmpl
 CONF=/etc/tinyproxy/tinyproxy.conf

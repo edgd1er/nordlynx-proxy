@@ -4,7 +4,6 @@ set -u -o pipefail
 
 ##Functions
 source /app/utils.sh
-. /app/date.sh --source-only
 RDIR=/run/nordvpn
 
 set_iptables() {

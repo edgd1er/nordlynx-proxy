@@ -30,6 +30,8 @@ else
 fi
 [[ 1 -eq ${DEBUG} ]] && [[ 0 -eq ${DANTE_DEBUG} ]] && DANTE_DEBUG=" 9" && set -x
 
+eval $(/sbin/ip route list match 0.0.0.0 | awk '{if($5!="tun0"){print "GW="$3"\nINT="$5; exit}}')
+
 fatal_error() {
   #printf "${TIME_FORMAT} \e[41mERROR:\033[0m %b\n" "$*" >&2
   printf "\e[41mERROR:\033[0m %b\n" "$*" >&2
@@ -87,7 +89,7 @@ getIntIp() {
 }
 
 getIntCidr() {
-  ip -j a show eth0 | jq -r '.[].addr_info[0]|"\( .local)/\(.prefixlen)"'
+  ip -j a show eth0 | jq -r '.[].addr_info[0]|"\( .broadcast)/\(.prefixlen)"' | sed 's/255/0/g'
 }
 
 ## tests functions

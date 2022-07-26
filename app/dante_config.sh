@@ -12,7 +12,6 @@ INTERFACE=$(ifconfig | grep -oE "(tun|nordlynx)")
 DANTE_LOGLEVEL=${DANTE_LOGLEVEL//\"/}
 DANTE_ERRORLOG=${DANTE_ERRORLOG//\"/}
 
-. /app/date.sh --source-only
 log "INFO: DANTE: INTERFACE: ${INTERFACE}, error log: ${DANTE_ERRORLOG}, log level: ${DANTE_LOGLEVEL}, dante debug: ${DANTE_DEBUG}"
 sed "s/INTERFACE/${INTERFACE}/" ${SOURCE_DANTE_CONF} >${DANTE_CONF}
 sed -i "s/DANTE_DEBUG/${DANTE_DEBUG}/" ${DANTE_CONF}

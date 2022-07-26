@@ -55,6 +55,7 @@ RUN if [[ -n "${aptcacher}" ]]; then echo "Acquire::http::Proxy \"http://${aptca
     && if [[ -n "${aptcacher}" ]]; then rm /etc/apt/apt.conf.d/01proxy; fi;
 
 HEALTHCHECK --interval=5m --timeout=20s --start-period=1m CMD /app/healthcheck.sh
+WORKDIR /app
 
 # Start supervisord as init system
 CMD ["/usr/bin/supervisord", "-n", "-c", "/etc/supervisor/supervisord.conf"]

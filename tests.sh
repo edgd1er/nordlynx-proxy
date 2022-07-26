@@ -42,7 +42,7 @@ for PORT in ${HTTP_PORT} ${SOCK_PORT}; do
   echo -e "$msg"
 done
 
-IP=$(curl -sqx http://${PROXY_HOST}:${HTTP_PORT} "https://ifconfig.me/ip")
+IP=$(curl -m5 -sqx http://${PROXY_HOST}:${HTTP_PORT} "https://ifconfig.me/ip")
 if [[ $? -eq 0 ]]; then
   echo "IP is ${IP}"
 else
@@ -50,7 +50,7 @@ else
   ((FAILED += 1))
 fi
 
-IP=$(curl -sqx socks5://${PROXY_HOST}:${SOCK_PORT} "https://ifconfig.me/ip")
+IP=$(curl -m5 -sqx socks5://${PROXY_HOST}:${SOCK_PORT} "https://ifconfig.me/ip")
 if [[ $? -eq 0 ]]; then
   echo "IP is ${IP}"
 else
@@ -58,7 +58,7 @@ else
   ((FAILED += 1))
 fi
 
-[[ "localhost" == ${PROXY_HOST} ]] && docker compose down || true
+[[ "localhost" =~ ${PROXY_HOST} ]] && docker compose down || true
 
 echo "# failed tests: ${FAILED}"
 exit ${FAILED}
