@@ -9,9 +9,9 @@
 
 # nordlynx-proxy
 
-current nordvpn application version: `3.14.1`
+current nordvpn application version: `3.14.2`
 
-Warning 1: login process is unstable: 
+Warning 1: login process is sometimes unstable: 
 ```
 It's not you, it's us. We're having trouble reaching our servers. If the issue persists, please contact our customer support.
 ```
