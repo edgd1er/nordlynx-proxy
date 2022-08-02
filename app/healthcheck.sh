@@ -9,6 +9,9 @@ log() {
   echo "$(date +"%Y-%m-%d %T"): $*"
 }
 
+#check if eth0 ip has changed, change tinyproxy listen address if needed.
+changeTinyListenAddress
+
 #if protected
 if test "$( curl -m 10 -s https://api.nordvpn.com/vpn/check/full | jq -r '.["status"]' )" = "Protected" ; then
   exit 0;
