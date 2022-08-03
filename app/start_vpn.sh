@@ -102,7 +102,7 @@ else
   "
 fi
 #exit if required vars are missing
-[[ -z ${CONNECT} ]] && exit 1
+[[ -z ${CONNECT:-''} ]] && exit 1
 [[ ! -d ${RDIR} ]] && mkdir -p ${RDIR}
 
 #make /dev/tun if missing

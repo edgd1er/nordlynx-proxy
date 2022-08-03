@@ -84,15 +84,14 @@ getExtIp() {
   ip -4 a show nordlynx | grep -oP "(?<=inet )([^/]+)"
 }
 
-getIntIp() {
+getEthIp() {
   ip -4 a show eth0 | grep -oP "(?<=inet )([^/]+)"
 }
 
-getIntCidr() {
+getEthCidr() {
   ip -j a show eth0 | jq -r '.[].addr_info[0]|"\( .broadcast)/\(.prefixlen)"' | sed 's/255/0/g'
 }
 
-## tests functions
 getTinyConf() {
   grep -v ^# /etc/tinyproxy/tinyproxy.conf | sed "/^$/d"
 }
@@ -107,7 +106,7 @@ getTinyListen() {
 
 changeTinyListenAddress(){
   listen_ip4=$(getTinyListen)
-  current_ip4=$(getIntIp)
+  current_ip4=$(getEthIp)
   if [[ ! -z ${listen_ip4} ]] && [[ ! -z ${current_ip4} ]] && [[ ${listen_ip4} != ${current_ip4} ]] ; then
     #dante ecoute sur le nom de l'interface eth0
     echo "Tinyproxy: changing listening address from ${listen_ip4} to ${current_ip4}"
@@ -116,6 +115,7 @@ changeTinyListenAddress(){
   fi
 }
 
+## tests functions
 testhproxy() {
   IP=$(curl -m5 -sqx http://${PROXY_HOST}:${HTTP_PORT} "https://ifconfig.me/ip")
   if [[ $? -eq 0 ]]; then

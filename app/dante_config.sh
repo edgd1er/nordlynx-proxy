@@ -53,7 +53,7 @@ echo "client pass {
 }
 
 client pass {
-        from: $(getIntCidr) to: 0.0.0.0/0
+        from: $(getEthCidr) to: 0.0.0.0/0
 	log: error
 }
 

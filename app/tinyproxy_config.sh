@@ -11,8 +11,8 @@ TINYPORT=${TINYPORT:-8888}
 TINYLOGLEVEL=${TINYLOGLEVEL:-Error}
 TINYLOGLEVEL=${TINYLOGLEVEL//\"/}
 EXT_IP=$(getExtIp)
-INT_IP=$(getIntIp)
-INT_CIDR=$(getIntCidr)
+INT_IP=$(getEthIp)
+INT_CIDR=$(getEthCidr)
 
 #Main
 log "INFO: TINYPROXY: set configuration INT_IP: ${INT_IP}/ EXT_IP: ${EXT_IP}"
