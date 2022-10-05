@@ -113,6 +113,7 @@ log "INFO: NORDVPN: starting nordvpn daemon"
 action=start
 isRunning=$(supervisorctl status nordvpnd | grep -c RUNNING) || true
 [[ 0 -le ${isRunning} ]] && action=restart
+[[ -e ${RDIR}/nordvpnd.sock ]] && rm -f ${RDIR}/nordvpnd.sock
 supervisorctl ${action} nordvpnd
 sleep 4
 #start nordvpn daemon

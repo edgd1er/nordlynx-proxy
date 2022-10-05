@@ -19,11 +19,11 @@ lint: ## stop all containers
 
 build: ## build image
 	@echo "build image ..."
-	docker-compose build
+	docker compose build
 
 run: ## run container
 	@echo "run container"
-	docker-compose up
+	docker compose up
 
 actcheck: ## GHA check nordvpn app version
 	@act -r -j check_version -P ubuntu-latest=nektos/act-environments-ubuntu:20.04
