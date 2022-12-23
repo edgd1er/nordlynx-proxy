@@ -124,6 +124,7 @@ done
 enforce_proxies_iptables
 
 #Use secrets if present
+logincmd="login --username ${NORDVPN_LOGIN:-''} --password ${NORDVPN_PASS:-''}"
 if [ -e /run/secrets/NORDVPN_CREDS ]; then
   mapfile -t -n 2 vars </run/secrets/NORDVPN_CREDS
   if [[ ${#vars[*]} -eq 2 ]]; then
@@ -138,7 +139,7 @@ if [ -e /run/secrets/NORDVPN_CREDS ]; then
   fi
 fi
 
-if [ -z ${NORDVPN_LOGIN} ]; then
+if [ -z ${NORDVPN_LOGIN:-''} ] || [ -z "${logincmd}" ]; then
   log "ERROR: NORDVPN: **********************"
   log "ERROR: NORDVPN: empty user or token   "
   log "ERROR: NORDVPN: **********************"
