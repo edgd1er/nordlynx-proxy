@@ -22,7 +22,7 @@ services:
         #- CYBER_SEC=off #CyberSec is a feature protecting you from ads, unsafe connections, and malicious sites
       - TECHNOLOGY=NordLynx #openvpn or nordlynx
         #- IPV6=off #optional, off by default, on/off available, off disable IPV6 in nordvpn app
-        #- NORDVPN_USER=<email> #Not required if using secrets
+        #- NORDVPN_LOGIN=<email> #Not required if using secrets
         #- NORDVPN_PASS=<pass> #Not required if using secrets
         #- DEBUG=0 #(0/1) activate debug mode for scripts, dante, tinproxy
         #- LOCAL_NETWORK=192.168.53.0/24 #LAN to route through proxies and vpn.

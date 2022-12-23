@@ -105,10 +105,6 @@ fi
 [[ -z ${CONNECT:-''} ]] && exit 1
 [[ ! -d ${RDIR} ]] && mkdir -p ${RDIR}
 
-#make /dev/tun if missing
-[[ ${TECHNOLOGY} =~ nordlynx ]] && mkTun || true
-enforce_proxies_iptables
-
 log "INFO: NORDVPN: starting nordvpn daemon"
 action=start
 isRunning=$(supervisorctl status nordvpnd | grep -c RUNNING) || true
@@ -123,25 +119,34 @@ while [ ! -S ${RDIR}/nordvpnd.sock ]; do
   sleep 4
 done
 
+#make /dev/tun if missing
+[[ ${TECHNOLOGY} =~ nordlynx ]] && mkTun || true
+enforce_proxies_iptables
+
 #Use secrets if present
 if [ -e /run/secrets/NORDVPN_CREDS ]; then
   mapfile -t -n 2 vars </run/secrets/NORDVPN_CREDS
-  if [[ ${#vars[*]} -ne 2 ]] || [[ ${vars[0]} == ${vars[1]} ]]; then
-    fatal_error "OVPN: openVPN login and password are identical and/or missing. Exiting"
+  if [[ ${#vars[*]} -eq 2 ]]; then
+    NORDVPN_LOGIN=${vars[0]}
+    NORDVPN_PASS=${vars[1]}
+    logincmd="login --username ${vars[0]} --password ${vars[1]}"
+  elif [[ ${#vars[*]} -eq 1 ]]; then
+    log "WARNING: Only one line found, assuming token."
+    NORDVPN_LOGIN=${vars[0]}
+    NORDVPN_PASS=''
+    logincmd="login -token ${vars[0]}"
   fi
-  NORDVPN_LOGIN=${vars[0]}
-  NORDVPN_PASS=${vars[1]}
 fi
 
-if [ -z ${NORDVPN_LOGIN} ] || [ -z ${NORDVPN_PASS} ]; then
+if [ -z ${NORDVPN_LOGIN} ]; then
   log "ERROR: NORDVPN: **********************"
-  log "ERROR: NORDVPN: empty user or password"
+  log "ERROR: NORDVPN: empty user or token   "
   log "ERROR: NORDVPN: **********************"
   exit 1
 fi
 
 # login: already logged in return 1
-res=$(nordvpn login --username ${NORDVPN_LOGIN} --password "${NORDVPN_PASS}" || true)
+res="$(nordvpn ${logincmd})" || true
 if [[ "${res}" != *"Welcome to NordVPN"* ]] && [[ "${res}" != *"You are already logged in."* ]]; then
   log "ERROR: NORDVPN: cannot login: ${res}"
   exit 1

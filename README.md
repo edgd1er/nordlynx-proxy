@@ -16,11 +16,9 @@ Warning 1: login process is sometimes unstable:
 It's not you, it's us. We're having trouble reaching our servers. If the issue persists, please contact our customer support.
 ```
 
-Warning 2: Edited: this warning is not present anymore. 
-Soon this image might be unusable due to login/password process deprecation, replaced by nordaccount: 
+Warning 2: login through token is preferred:
 ```
-Password login is deprecated.
-'nordvpn login --nordaccount' will become the default login method in the future.
+Logging in via ‘--legacy’, ‘--username’, and ‘--password’ flags is deprecated. Use ‘nordvpn login' or ‘nordvpn login --nordaccount’ to log in via browser. Alternatively, you can use ‘nordvpn login --token’ to log in with a generated token.
 ```
 
 Warning 3: At the moment, the container is not set to run with generated wireguard config file. (healtcheck, start checks, switch from nordvpn to wireguard tools) 
@@ -86,7 +84,7 @@ sysclts:
 * CONNECT = [country]/[server]/[country_code]/[city] or [country] [city], if none provide you will connect to the recommended server.
 * [COUNTRY](https://api.nordvpn.com/v1/servers/countries) define the exit country.
 * [GROUP](https://api.nordvpn.com/v1/servers/groups): Africa_The_Middle_East_And_India, Asia_Pacific, Europe, Onion_Over_VPN, P2P, Standard_VPN_Servers, The_Americas, although many categories are possible, p2p seems more adapted.
-* NORDVPN_USER=email (As of 21/07/25, Service credentials are not allowed.)
+* NORDVPN_LOGIN=email (As of 21/07/25, Service credentials are not allowed.)
 * NORDVPN_PASS=pass 
 * CYBER_SEC, default off
 * KILLERSWITCH, default on
@@ -94,6 +92,11 @@ sysclts:
 * PORTS: add ports to allow
 * LOCAL_NETWORK: add subnet to allow, multiple values possible net1, net2, net3, ....
 * DOCKER_NET: optional, docker CIDR extracted from container ip if not set. 
+
+### Authentification
+
+As of 22/12/23, login with username and password are deprecated, as well as legacy. username and password login are allowed in the container, may not be allowed by nordvpn.
+token login is recommended.
 
 ### docker-compose with env variables explained
 
@@ -119,7 +122,7 @@ services:
       #- CYBER_SEC=off #CyberSec is a feature protecting you from ads, unsafe connections, and malicious sites
       #- TECHNOLOGY=NordLynx #openvpn or nordlynx
       #- IPV6=off #optional, off by default, on/off available, off disable IPV6 in nordvpn app
-      #- NORDVPN_USER=<email> #Not required if using secrets
+      #- NORDVPN_LOGIN=<email> #Not required if using secrets
       #- NORDVPN_PASS=<pass> #Not required if using secrets
       #- DEBUG=0 #(0/1) activate debug mode for scripts, dante, tinproxy
       #- LOCAL_NETWORK=192.168.53.0/24 #LAN to route through proxies and vpn.
