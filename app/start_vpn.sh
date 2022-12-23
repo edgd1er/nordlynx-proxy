@@ -125,9 +125,9 @@ enforce_proxies_iptables
 
 
 #Use env login if present
-if [ -z "${NORDVPN_PASS:-''}" ]; then
+if [[ -z ${NORDVPN_PASS:-''} ]] && [[ -n ${NORDVPN_LOGIN:-''} ]]; then
 	log "WARNING: No password env value found, assuming token."
-	logincmd="login -token ${NORDVPN_LOGIN}"
+	logincmd="login --token ${NORDVPN_LOGIN:-''}"
 else
 	logincmd="login --username ${NORDVPN_LOGIN:-''} --password ${NORDVPN_PASS:-''}"
 fi
@@ -143,7 +143,7 @@ if [ -e /run/secrets/NORDVPN_CREDS ]; then
     log "WARNING: Only one line found, assuming token."
     NORDVPN_LOGIN=${vars[0]}
     NORDVPN_PASS=''
-    logincmd="login -token ${vars[0]}"
+    logincmd="login --token ${vars[0]}"
   fi
 fi
 

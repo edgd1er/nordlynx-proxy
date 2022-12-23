@@ -20,7 +20,7 @@ PROXY_HOST=$(ip -4 a show eth0 | grep -oP "(?<=inet )([^/]+)")
 HTTP_PORT=8888
 SOCK_PORT=1080
 
-if [[ 1 -eq ${DEBUG} ]]; then
+if [[ 1 -eq ${DEBUG:-0} ]]; then
   set -x
   #set DANTE_DEBUG only if not already set
   [[ -z ${DANTE_DEBUG:-''} ]] && export DANTE_DEBUG=9
