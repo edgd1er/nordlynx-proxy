@@ -123,8 +123,16 @@ done
 [[ ${TECHNOLOGY} =~ nordlynx ]] && mkTun || true
 enforce_proxies_iptables
 
+
+#Use env login if present
+if [ -z "${NORDVPN_PASS:-''}" ]; then
+	log "WARNING: No password env value found, assuming token."
+	logincmd="login -token ${NORDVPN_LOGIN}"
+else
+	logincmd="login --username ${NORDVPN_LOGIN:-''} --password ${NORDVPN_PASS:-''}"
+fi
+
 #Use secrets if present
-logincmd="login --username ${NORDVPN_LOGIN:-''} --password ${NORDVPN_PASS:-''}"
 if [ -e /run/secrets/NORDVPN_CREDS ]; then
   mapfile -t -n 2 vars </run/secrets/NORDVPN_CREDS
   if [[ ${#vars[*]} -eq 2 ]]; then
