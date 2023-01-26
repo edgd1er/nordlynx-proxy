@@ -14,7 +14,7 @@
 
 # nordlynx-proxy
 
-current nordvpn application version: `3.15.3`
+[Nordvpn client's version](https://nordvpn.com/fr/blog/nordvpn-linux-release-notes/): 3.15.4 (23/01/26)
 
 Warning 1: login process is sometimes unstable: 
 ```
