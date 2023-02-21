@@ -14,7 +14,7 @@
 
 # nordlynx-proxy
 
-[Nordvpn client's version](https://nordvpn.com/fr/blog/nordvpn-linux-release-notes/): 3.15.4 (23/01/26)
+[Nordvpn client's version](https://nordvpn.com/fr/blog/nordvpn-linux-release-notes/): 3.15.5 (23/02/21)
 
 Warning 1: login process is sometimes unstable: 
 ```
@@ -28,7 +28,7 @@ Logging in via ‘--legacy’, ‘--username’, and ‘--password’ flags is d
 
 Warning 3: At the moment, the container is not set to run with generated wireguard config file. (healtcheck, start checks, switch from nordvpn to wireguard tools) 
 
-This is a NordVPN docker container that connects to the NordVPN recommended servers through nordvpn client, and starts both a SOCKS5 proxy (dante) and an http proxy. Upon connection, the wireguard configuration is saved to `/etc/wireguard/wg0.conf` if required `GENERATE_WIREGUARD_CONF=true`. This file can be exported then re-used to setup a plain wireguard connection. After this operation, 317 MB of additional disk space will be used. (nordlynx-proxy-wg image is buitl to compare sizes)
+This is a NordVPN docker container that connects to the NordVPN recommended servers through nordvpn client, and starts both a SOCKS5 proxy (dante) and an http proxy. Upon connection, the wireguard configuration is saved to `/etc/wireguard/wg0.conf` if required `GENERATE_WIREGUARD_CONF=true`. This file can be exported then re-used to setup a plain wireguard connection. After this operation, 317 MB of additional disk space will be used. (nordlynx-proxy-wg image is built to compare sizes)
 Openvpn and nordlynx technology are available through ǹordvpn settings technology
 
 Added docker image version for raspberry.  
