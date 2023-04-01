@@ -10,7 +10,7 @@ on:
       - '.github/**'
 env:
   IMAGE: nordlynx-proxy-wg
-  VERSION: 3.16.0
+  VERSION: 3.16.1
   TAG: latest
   WG: true
 
