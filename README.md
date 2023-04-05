@@ -89,8 +89,8 @@ sysclts:
 * CONNECT = [country]/[server]/[country_code]/[city] or [country] [city], if none provide you will connect to the recommended server.
 * [COUNTRY](https://api.nordvpn.com/v1/servers/countries) define the exit country.
 * [GROUP](https://api.nordvpn.com/v1/servers/groups): Africa_The_Middle_East_And_India, Asia_Pacific, Europe, Onion_Over_VPN, P2P, Standard_VPN_Servers, The_Americas, although many categories are possible, p2p seems more adapted.
-* NORDVPN_LOGIN=email (As of 21/07/25, Service credentials are not allowed.)
-* NORDVPN_PASS=pass 
+* NORDVPN_LOGIN=email or token(As of 21/07/25, Service credentials are not allowed.)
+* NORDVPN_PASS=pass or empty when using token
 * CYBER_SEC, default off
 * KILLERSWITCH, default on
 * DNS: change dns
@@ -127,7 +127,7 @@ services:
       #- CYBER_SEC=off #CyberSec is a feature protecting you from ads, unsafe connections, and malicious sites
       #- TECHNOLOGY=NordLynx #openvpn or nordlynx
       #- IPV6=off #optional, off by default, on/off available, off disable IPV6 in nordvpn app
-      #- NORDVPN_LOGIN=<email> #Not required if using secrets
+      #- NORDVPN_LOGIN=<email|token> #Not required if using secrets
       #- NORDVPN_PASS=<pass> #Not required if using secrets
       #- DEBUG=0 #(0/1) activate debug mode for scripts, dante, tinproxy
       #- LOCAL_NETWORK=192.168.53.0/24 #LAN to route through proxies and vpn.
@@ -142,7 +142,28 @@ services:
 
 secrets:
     NORDVPN_CREDS:
-        file: ./nordvpn_creds #file with username in 1st line, passwd in 2nd line.
+        file: ./nordvpn_creds #file with username/token in 1st line, passwd in 2nd line.
 ```
 
+### Troubleshoot
 
+Enter the container: `docker compose exec lynx bash`
+Several aliases are available:
+* checkhttp: get external ip through http proxy and vpn. should be the same as `checkip`
+* checksocks: get external ip through socks proxy and vpn. should be the same as `checkip`
+* checkip: get external ip. should be the same as `getcheck`
+* checkvpn: print protection status as seen by nordvpn's client.
+* getcheck: get information as ip from nordvpn client.
+* getdante: print socks proxy configuration
+* gettiny: print http proxy configuration
+
+```bash
+root@723b24ebe363:/app# alias
+alias checkhttp='curl -sm 10 -x http://${HOSTNAME}:${WEBPROXY_PORT:-8888} "https://ifconfig.me/ip";echo'
+alias checkip='curl -sm 10 "https://zx2c4.com/ip";echo'
+alias checksocks='curl -sm10 -x socks5://${HOSTNAME}:1080 "https://ifconfig.me/ip";echo'
+alias checkvpn='curl -sm 10 "https://api.nordvpn.com/vpn/check/full" | jq -r .status'
+alias getcheck='curl -sm 10 "https://api.nordvpn.com/vpn/check/full" | jq . '
+alias getdante='grep -vP "(^$|^#)" /etc/dante.conf'
+alias gettiny='grep -vP "(^$|^#)" /etc/tinyproxy/tinyproxy.conf'
+```
