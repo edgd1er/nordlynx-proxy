@@ -14,7 +14,7 @@
 
 # nordlynx-proxy
 
-[Nordvpn client's version](https://nordvpn.com/fr/blog/nordvpn-linux-release-notes/) or [changelog](https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/nordvpn_3.16.1_amd64.changelog): 3.16.1 (23/03/24)
+[NordVPN client's version](https://nordvpn.com/fr/blog/nordvpn-linux-release-notes/) or [changelog](https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/nordvpn_3.16.1_amd64.changelog): 3.16.1 (23/03/24)
 
 Warning 1: login process is sometimes unstable: 
 ```
@@ -26,46 +26,46 @@ Warning 2: login through token is preferred:
 Logging in via ‘--legacy’, ‘--username’, and ‘--password’ flags is deprecated. Use ‘nordvpn login' or ‘nordvpn login --nordaccount’ to log in via browser. Alternatively, you can use ‘nordvpn login --token’ to log in with a generated token.
 ```
 
-Warning 3: At the moment, the container is not set to run with generated wireguard config file. (healtcheck, start checks, switch from nordvpn to wireguard tools) 
-
-This is a NordVPN docker container that connects to the NordVPN recommended servers through nordvpn client, and starts both a SOCKS5 proxy (dante) and an http proxy. Upon connection, the wireguard configuration is saved to `/etc/wireguard/wg0.conf` if required `GENERATE_WIREGUARD_CONF=true`. This file can be exported then re-used to setup a plain wireguard connection. After this operation, 317 MB of additional disk space will be used. (nordlynx-proxy-wg image is built to compare sizes)
-Openvpn and nordlynx technology are available through ǹordvpn settings technology
-
-Added docker image version for raspberry.  
-
-Whenever the connection is lost, nordvpn client has a killswitch to obliterate the connection.
+Warning 3: At the moment, the container is not set to run with generated wireguard config file. (healthcheck, start checks, switch from NordVPN to WireGuard tools) 
 
 
-tests:
-* https://www.dnsleaktest.com/results.html
+### Description
+This is a NordVPN docker container that connects to the NordVPN recommended servers using the NordVPN Linux client. It starts a SOCKS5 proxy server (dante) and a HTTP proxy server to use it as a NordVPN gateway. After this operation, 317 MB of additional disk space will be used. (nordlynx-proxy-wg image is built to compare sizes). OpenVPN and NordLynx technology are available through NordVPN settings technology. Whenever the connection is lost, the NordVPN client has a killswitch to obliterate the connection.
+
+### Exporting WireGuard config
+If environment variable `GENERATE_WIREGUARD_CONF=true` is set, the WireGuard configuration is saved to `/etc/wireguard/wg0.conf when connecting.
+This file can be exported then re-used to setup a plain WireGuard connection. 
+
+### VPN tests:
+* https://www.dnsleaktest.com
 * https://ipleak.net/
 * https://browserleaks.com/webrtc
 
-**Please note that webrtc will leak your real IP. You need to disable webrtc or install nordvpn's extension.**
+**Please note that WebRTC will leak your real IP. You need to disable WebRTC  or install nordvpn's browser extension.**
 https://browserleaks.com/webrtc#howto-disable-webrtc
 
 ## What is this?
 
 This image is a variation of nordvpn-proxy. The latter is based on openvpn. 
-The nordvpn application replace openvpn. Nordvpn version of [wireguard](https://nordvpn.com/blog/wireguard-simplicity-efficiency/) is [nordlynx](https://nordvpn.com/blog/nordlynx-protocol-wireguard/).
+The NordVPN client application replaces OpenVPN. NordVPN's version of [WireGuard](https://nordvpn.com/blog/wireguard-simplicity-efficiency/) is [NordLynx](https://nordvpn.com/blog/nordlynx-protocol-wireguard/).
 
-you can then expose port `1080` from the container to access the VPN connection via the SOCKS5 proxy, or use the `8888` http's proxy port.
+You can then expose port `1080` from the container to access the VPN connection via the SOCKS5 proxy, or use the `8888` http's proxy port.
 
 To sum up, this container:
-* Opens the best connection to NordVPN using nordvpn app NordVpn API results according to your criteria.
-* Starts a HTTP proxy that route `eth0:8888` to `eth0:1080` (socks server) with [tinyproxy](https://tinyproxy.github.io/)
+* Opens the best connection to NordVPN using NordVPN's API results according to your criteria. [NordVPN recommended](https://nordvpn.com/servers/tools/)
+* Starts a HTTP proxy that routes `eth0:8888` to `eth0:1080` (socks server) with [tinyproxy](https://tinyproxy.github.io/).
 * Starts a SOCKS5 proxy that routes `eth0:1080` to `tun0/nordlynx` with [dante-server](https://www.inet.no/dante/).
-* nordvpn dns servers perform resolution, by default.
-* uses supervisor to handle easily services.
+* NordVPN DNS servers perform resolution, by default.
+* Uses supervisor to handle services easily.
 
 The main advantages are:
-- you get the best recommendation for each combination of parameters (country, groups, protocol).
-- can select openvpn or nordlynx protocol
-- use of nordVpn app features (Killswitch, cybersec, ....)
+- You get the best recommendation for each combination of parameters (country, groups, protocol).
+- You can select OpenVPN or NordLynx protocol.
+- Use of NordVPN app features (Killswitch, CyberSec, ....).
 
 
-please note, that to avoid dns problem when the dns service is on the same host, /etc/resolv.conf is set to google DNS (1.1.1.1).
-That DNS is used only during startup (check latest nordvpn version), NordVpn dns are set when vpn is up.
+Please note, that to avoid DNS problems when the DNS service is on the same host, /etc/resolv.conf is set to Cloudflare DNS (1.1.1.1).
+The DNS above is only used during startup (to check the latest NordVPN version). NordVPN DNS is set when VPN connection is up.
 ```
 # Generated by NordVPN
 nameserver 103.86.96.100
@@ -75,22 +75,23 @@ nameserver 103.86.99.100
 
 ## Usage
 
-The container may use environment variable to select a server, otherwise the best recommended server is selected:
-see environment variables to get all available options or [nordVpn support](https://support.nordvpn.com/Connectivity/Linux/1325531132/Installing-and-using-NordVPN-on-Debian-Ubuntu-Raspberry-Pi-Elementary-OS-and-Linux-Mint.htm#Settings).
+The container may use environment variables to select a server, otherwise the best recommended server is selected:
+See environment variables to get all available options or [nordVPN support](https://support.nordvpn.com/Connectivity/Linux/1325531132/Installing-and-using-NordVPN-on-Debian-Ubuntu-Raspberry-Pi-Elementary-OS-and-Linux-Mint.htm#Settings).
 
-adding 
+Adding 
 ``` docker
 sysclts:
  - net.ipv6.conf.all.disable_ipv6=1 # disable ipv6
  ```
-  might be needed, if nordvpn cannot change the settings itself.
+Might be needed, if nordvpn cannot change the settings itself.
 
-* TECHNOLOGY=[NordLynx]/[OpenVPN], default: NordLynx (wireguard like)
-* CONNECT = [country]/[server]/[country_code]/[city] or [country] [city], if none provide you will connect to the recommended server.
-* [COUNTRY](https://api.nordvpn.com/v1/servers/countries) define the exit country.
+## Environment options
+* TECHNOLOGY: [NordLynx]/[OpenVPN], default: NordLynx (wireguard like)
+* CONNECT: [country]/[server]/[country_code]/[city] or [country] [city], if none provide you will connect to the recommended server.
+* [COUNTRY](https://api.nordvpn.com/v1/servers/countries): define the exit country.
 * [GROUP](https://api.nordvpn.com/v1/servers/groups): Africa_The_Middle_East_And_India, Asia_Pacific, Europe, Onion_Over_VPN, P2P, Standard_VPN_Servers, The_Americas, although many categories are possible, p2p seems more adapted.
-* NORDVPN_LOGIN=email or token(As of 21/07/25, Service credentials are not allowed.)
-* NORDVPN_PASS=pass or empty when using token
+* NORDVPN_LOGIN: email or token(As of 21/07/25, Service credentials are not allowed.)
+* NORDVPN_PASS: pass or empty when using token
 * CYBER_SEC, default off
 * KILLERSWITCH, default on
 * DNS: change dns
@@ -98,12 +99,10 @@ sysclts:
 * LOCAL_NETWORK: add subnet to allow, multiple values possible net1, net2, net3, ....
 * DOCKER_NET: optional, docker CIDR extracted from container ip if not set. 
 
-### Authentification
+### Authentication
+As of 22/12/23, login with username and password are deprecated, as well as legacy. Username and password logins are allowed in the container, but may not be allowed by NordVPN. Login with a token is highly recommended.
 
-As of 22/12/23, login with username and password are deprecated, as well as legacy. username and password login are allowed in the container, may not be allowed by nordvpn.
-token login is recommended.
-
-### docker-compose with env variables explained
+### docker-compose example with env variables explained
 
 ```yaml
 version: '3.8'
