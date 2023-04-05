@@ -14,7 +14,7 @@
 
 # nordlynx-proxy
 
-[Nordvpn client's version](https://nordvpn.com/fr/blog/nordvpn-linux-release-notes/) or [changelog](https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/nordvpn_3.16.1_amd64.changelog): 3.16.1 (23/03/24)
+[NordVPN client's version](https://nordvpn.com/fr/blog/nordvpn-linux-release-notes/) or [changelog](https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/nordvpn_3.16.1_amd64.changelog): 3.16.1 (23/03/24)
 
 Warning 1: login process is sometimes unstable: 
 ```
@@ -26,22 +26,28 @@ Warning 2: login through token is preferred:
 Logging in via ‘--legacy’, ‘--username’, and ‘--password’ flags is deprecated. Use ‘nordvpn login' or ‘nordvpn login --nordaccount’ to log in via browser. Alternatively, you can use ‘nordvpn login --token’ to log in with a generated token.
 ```
 
-Warning 3: At the moment, the container is not set to run with generated wireguard config file. (healtcheck, start checks, switch from nordvpn to wireguard tools) 
+Warning 3: At the moment, the container is not set to run with generated wireguard config file. (healthcheck, start checks, switch from NordVPN to WireGuard tools) 
 
-This is a NordVPN docker container that connects to the NordVPN recommended servers through nordvpn client, and starts both a SOCKS5 proxy (dante) and an http proxy. Upon connection, the wireguard configuration is saved to `/etc/wireguard/wg0.conf` if required `GENERATE_WIREGUARD_CONF=true`. This file can be exported then re-used to setup a plain wireguard connection. After this operation, 317 MB of additional disk space will be used. (nordlynx-proxy-wg image is built to compare sizes)
-Openvpn and nordlynx technology are available through ǹordvpn settings technology
+
+### Description
+This is a NordVPN docker container that connects to the NordVPN recommended servers using the NordVPN Linux client. It starts a SOCKS5 proxy server (dante) and a HTTP proxy server to use it as a NordVPN gateway. After this operation, 317 MB of additional disk space will be used. (nordlynx-proxy-wg image is built to compare sizes). OpenVPN and NordLynx technology are available through NordVPN settings technology. Whenever the connection is lost, the NordVPN client has a killswitch to obliterate the connection.
+
+### Exporting WireGuard config
+If environment variable `GENERATE_WIREGUARD_CONF=true` is set, the WireGuard configuration is saved to `/etc/wireguard/wg0.conf when connecting.
+This file can be exported then re-used to setup a plain WireGuard connection. 
+
 
 Added docker image version for raspberry.  
 
-Whenever the connection is lost, nordvpn client has a killswitch to obliterate the connection.
 
 
-tests:
+
+### VPN tests:
 * https://www.dnsleaktest.com
 * https://ipleak.net/
 * https://browserleaks.com/webrtc
 
-**Please note that webrtc will leak your real IP. You need to disable webrtc or install nordvpn's extension.**
+**Please note that WebRTC will leak your real IP. You need to disable WebRTC  or install nordvpn's browser extension.**
 https://browserleaks.com/webrtc#howto-disable-webrtc
 
 ## What is this?
