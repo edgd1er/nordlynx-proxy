@@ -75,22 +75,23 @@ nameserver 103.86.99.100
 
 ## Usage
 
-The container may use environment variable to select a server, otherwise the best recommended server is selected:
-see environment variables to get all available options or [nordVpn support](https://support.nordvpn.com/Connectivity/Linux/1325531132/Installing-and-using-NordVPN-on-Debian-Ubuntu-Raspberry-Pi-Elementary-OS-and-Linux-Mint.htm#Settings).
+The container may use environment variables to select a server, otherwise the best recommended server is selected:
+See environment variables to get all available options or [nordVPN support](https://support.nordvpn.com/Connectivity/Linux/1325531132/Installing-and-using-NordVPN-on-Debian-Ubuntu-Raspberry-Pi-Elementary-OS-and-Linux-Mint.htm#Settings).
 
-adding 
+Adding 
 ``` docker
 sysclts:
  - net.ipv6.conf.all.disable_ipv6=1 # disable ipv6
  ```
-  might be needed, if nordvpn cannot change the settings itself.
+Might be needed, if nordvpn cannot change the settings itself.
 
-* TECHNOLOGY=[NordLynx]/[OpenVPN], default: NordLynx (wireguard like)
-* CONNECT = [country]/[server]/[country_code]/[city] or [country] [city], if none provide you will connect to the recommended server.
-* [COUNTRY](https://api.nordvpn.com/v1/servers/countries) define the exit country.
+## Environment options
+* TECHNOLOGY: [NordLynx]/[OpenVPN], default: NordLynx (wireguard like)
+* CONNECT: [country]/[server]/[country_code]/[city] or [country] [city], if none provide you will connect to the recommended server.
+* [COUNTRY](https://api.nordvpn.com/v1/servers/countries): define the exit country.
 * [GROUP](https://api.nordvpn.com/v1/servers/groups): Africa_The_Middle_East_And_India, Asia_Pacific, Europe, Onion_Over_VPN, P2P, Standard_VPN_Servers, The_Americas, although many categories are possible, p2p seems more adapted.
-* NORDVPN_LOGIN=email or token(As of 21/07/25, Service credentials are not allowed.)
-* NORDVPN_PASS=pass or empty when using token
+* NORDVPN_LOGIN: email or token(As of 21/07/25, Service credentials are not allowed.)
+* NORDVPN_PASS: pass or empty when using token
 * CYBER_SEC, default off
 * KILLERSWITCH, default on
 * DNS: change dns
@@ -98,12 +99,10 @@ sysclts:
 * LOCAL_NETWORK: add subnet to allow, multiple values possible net1, net2, net3, ....
 * DOCKER_NET: optional, docker CIDR extracted from container ip if not set. 
 
-### Authentification
+### Authentication
+As of 22/12/23, login with username and password are deprecated, as well as legacy. Username and password logins are allowed in the container, but may not be allowed by NordVPN. Login with a token is highly recommended.
 
-As of 22/12/23, login with username and password are deprecated, as well as legacy. username and password login are allowed in the container, may not be allowed by nordvpn.
-token login is recommended.
-
-### docker-compose with env variables explained
+### docker-compose example with env variables explained
 
 ```yaml
 version: '3.8'
