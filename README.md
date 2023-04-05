@@ -37,7 +37,7 @@ Whenever the connection is lost, nordvpn client has a killswitch to obliterate t
 
 
 tests:
-* https://www.dnsleaktest.com/results.html
+* https://www.dnsleaktest.com
 * https://ipleak.net/
 * https://browserleaks.com/webrtc
 
