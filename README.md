@@ -26,7 +26,7 @@ Warning 2: login through token is preferred:
 Logging in via ‘--legacy’, ‘--username’, and ‘--password’ flags is deprecated. Use ‘nordvpn login' or ‘nordvpn login --nordaccount’ to log in via browser. Alternatively, you can use ‘nordvpn login --token’ to log in with a generated token.
 ```
 
-Warning 3: At the moment, the container is not set to run with generated wireguard config file. (healthcheck, start checks, switch from NordVPN to WireGuard tools).
+Warning 3: at the moment, the container is not set to run with generated wireguard config file. (healthcheck, start checks, switch from NordVPN to WireGuard tools).
 
 
 ### Description
@@ -45,7 +45,6 @@ This file can be exported then re-used to setup a plain WireGuard connection.
 https://browserleaks.com/webrtc#howto-disable-webrtc
 
 ## What is this?
-
 This image is a variation of nordvpn-proxy. The latter is based on OpenVPN. 
 The NordVPN client application replaces OpenVPN. NordVPN's version of [WireGuard](https://nordvpn.com/blog/wireguard-simplicity-efficiency/) is [NordLynx](https://nordvpn.com/blog/nordlynx-protocol-wireguard/).
 
@@ -74,7 +73,6 @@ nameserver 103.86.99.100
 
 
 ## Usage
-
 The container may use environment variables to select a server, otherwise the best recommended server is selected:
 See environment variables to get all available options or [NordVPN support](https://support.nordvpn.com/Connectivity/Linux/1325531132/Installing-and-using-NordVPN-on-Debian-Ubuntu-Raspberry-Pi-Elementary-OS-and-Linux-Mint.htm#Settings).
 
@@ -103,7 +101,6 @@ Might be needed, if NordVPN cannot change the settings itself.
 As of 23-12-2022, login with username and password are deprecated, as well as legacy. Username and password logins are allowed in the container, but may not be allowed by NordVPN. Login with a token is highly recommended. Tokens can be generated in your [NordAccount](https://my.nordaccount.com/dashboard/nordvpn).
 
 ### docker-compose example with env variables explained
-
 ```yaml
 version: '3.8'
 services:
@@ -145,8 +142,8 @@ secrets:
 ```
 
 ### Troubleshoot
-
 Enter the container: `docker compose exec lynx bash`
+
 Several aliases are available:
 * checkhttp: get external ip through http proxy and vpn. should be the same as `checkip`
 * checksocks: get external ip through socks proxy and vpn. should be the same as `checkip`
