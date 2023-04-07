@@ -14,7 +14,7 @@
 
 # nordlynx-proxy
 
-[NordVPN client's version](https://nordvpn.com/fr/blog/nordvpn-linux-release-notes/) or [changelog](https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/nordvpn_3.16.1_amd64.changelog): 3.16.1 (23/03/24)
+[NordVPN client's version](https://nordvpn.com/fr/blog/nordvpn-linux-release-notes/) or [changelog](https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/nordvpn_3.16.1_amd64.changelog): 3.16.1 (24-03-2023)
 
 Warning 1: login process is sometimes unstable: 
 ```
@@ -26,27 +26,26 @@ Warning 2: login through token is preferred:
 Logging in via ‘--legacy’, ‘--username’, and ‘--password’ flags is deprecated. Use ‘nordvpn login' or ‘nordvpn login --nordaccount’ to log in via browser. Alternatively, you can use ‘nordvpn login --token’ to log in with a generated token.
 ```
 
-Warning 3: At the moment, the container is not set to run with generated wireguard config file. (healthcheck, start checks, switch from NordVPN to WireGuard tools) 
+Warning 3: at the moment, the container is not set to run with generated wireguard config file. (healthcheck, start checks, switch from NordVPN to WireGuard tools).
 
 
 ### Description
 This is a NordVPN docker container that connects to the NordVPN recommended servers using the NordVPN Linux client. It starts a SOCKS5 proxy server (dante) and a HTTP proxy server to use it as a NordVPN gateway. After this operation, 317 MB of additional disk space will be used. (nordlynx-proxy-wg image is built to compare sizes). OpenVPN and NordLynx technology are available through NordVPN settings technology. Whenever the connection is lost, the NordVPN client has a killswitch to obliterate the connection.
 
 ### Exporting WireGuard config
-If environment variable `GENERATE_WIREGUARD_CONF=true` is set, the WireGuard configuration is saved to `/etc/wireguard/wg0.conf when connecting.
+If environment variable `GENERATE_WIREGUARD_CONF=true` is set, the WireGuard configuration is saved to `/etc/wireguard/wg0.conf` when connecting.
 This file can be exported then re-used to setup a plain WireGuard connection. 
 
 ### VPN tests:
 * https://www.dnsleaktest.com
-* https://ipleak.net/
+* https://ipleak.net
 * https://browserleaks.com/webrtc
 
 **Please note that WebRTC will leak your real IP. You need to disable WebRTC  or install nordvpn's browser extension.**
 https://browserleaks.com/webrtc#howto-disable-webrtc
 
 ## What is this?
-
-This image is a variation of nordvpn-proxy. The latter is based on openvpn. 
+This image is a variation of nordvpn-proxy. The latter is based on OpenVPN. 
 The NordVPN client application replaces OpenVPN. NordVPN's version of [WireGuard](https://nordvpn.com/blog/wireguard-simplicity-efficiency/) is [NordLynx](https://nordvpn.com/blog/nordlynx-protocol-wireguard/).
 
 You can then expose port `1080` from the container to access the VPN connection via the SOCKS5 proxy, or use the `8888` http's proxy port.
@@ -74,23 +73,22 @@ nameserver 103.86.99.100
 
 
 ## Usage
-
 The container may use environment variables to select a server, otherwise the best recommended server is selected:
-See environment variables to get all available options or [nordVPN support](https://support.nordvpn.com/Connectivity/Linux/1325531132/Installing-and-using-NordVPN-on-Debian-Ubuntu-Raspberry-Pi-Elementary-OS-and-Linux-Mint.htm#Settings).
+See environment variables to get all available options or [NordVPN support](https://support.nordvpn.com/Connectivity/Linux/1325531132/Installing-and-using-NordVPN-on-Debian-Ubuntu-Raspberry-Pi-Elementary-OS-and-Linux-Mint.htm#Settings).
 
 Adding 
 ``` docker
 sysclts:
  - net.ipv6.conf.all.disable_ipv6=1 # disable ipv6
  ```
-Might be needed, if nordvpn cannot change the settings itself.
+Might be needed, if NordVPN cannot change the settings itself.
 
 ## Environment options
 * TECHNOLOGY: [NordLynx]/[OpenVPN], default: NordLynx (wireguard like)
 * CONNECT: [country]/[server]/[country_code]/[city] or [country] [city], if none provide you will connect to the recommended server.
 * [COUNTRY](https://api.nordvpn.com/v1/servers/countries): define the exit country.
-* [GROUP](https://api.nordvpn.com/v1/servers/groups): Africa_The_Middle_East_And_India, Asia_Pacific, Europe, Onion_Over_VPN, P2P, Standard_VPN_Servers, The_Americas, although many categories are possible, p2p seems more adapted.
-* NORDVPN_LOGIN: email or token(As of 21/07/25, Service credentials are not allowed.)
+* [GROUP](https://api.nordvpn.com/v1/servers/groups): Africa_The_Middle_East_And_India, Asia_Pacific, Europe, Onion_Over_VPN, P2P, Standard_VPN_Servers, The_Americas, although many categories are possible, p2p seems to be more adapted.
+* NORDVPN_LOGIN: email or token (as of 25-07-21, service credentials are not allowed).
 * NORDVPN_PASS: pass or empty when using token
 * CYBER_SEC, default off
 * KILLERSWITCH, default on
@@ -100,10 +98,9 @@ Might be needed, if nordvpn cannot change the settings itself.
 * DOCKER_NET: optional, docker CIDR extracted from container ip if not set. 
 
 ### Authentication
-As of 22/12/23, login with username and password are deprecated, as well as legacy. Username and password logins are allowed in the container, but may not be allowed by NordVPN. Login with a token is highly recommended.
+As of 23-12-2022, login with username and password are deprecated, as well as legacy. Username and password logins are allowed in the container, but may not be allowed by NordVPN. Login with a token is highly recommended. Tokens can be generated in your [NordAccount](https://my.nordaccount.com/dashboard/nordvpn).
 
 ### docker-compose example with env variables explained
-
 ```yaml
 version: '3.8'
 services:
@@ -119,23 +116,23 @@ services:
       - NET_ADMIN               # Required
     environment:
       - TZ=America/Chicago
-      #- CONNECT= #Optionnal, override COUNTRY, specify country+serveur number like uk715
+      #- CONNECT= #Optional, overrides COUNTRY, specify country+server number for example: uk715
       - COUNTRY=de #Optional, by default, servers in user's coyntry.
       - GROUP=P2P #Africa_The_Middle_East_And_India, Asia_Pacific, Europe, Onion_Over_VPN, P2P, Standard_VPN_Servers, The_Americas
-      #- KILLERSWITCH=on #Optional, on by default, kill Switch is a feature helping you prevent unprotected access to the internet when your traffic doesn't go through a NordVPN server.
-      #- CYBER_SEC=off #CyberSec is a feature protecting you from ads, unsafe connections, and malicious sites
+      #- KILLERSWITCH=on #Optional, on by default, kill switch is a feature helping you prevent unprotected access to the internet when your traffic doesn't go through a NordVPN server.
+      #- CYBER_SEC=off #CyberSec is a feature protecting you from ads, unsafe connections and malicious sites
       #- TECHNOLOGY=NordLynx #openvpn or nordlynx
-      #- IPV6=off #optional, off by default, on/off available, off disable IPV6 in nordvpn app
-      #- NORDVPN_LOGIN=<email|token> #Not required if using secrets
-      #- NORDVPN_PASS=<pass> #Not required if using secrets
-      #- DEBUG=0 #(0/1) activate debug mode for scripts, dante, tinproxy
-      #- LOCAL_NETWORK=192.168.53.0/24 #LAN to route through proxies and vpn.
-      #- TINYLOGLEVEL=error #Optional, default error: Critical (least verbose), Error, Warning, Notice, Connect (to log connections without Info's noise), Info
+      #- IPV6=off #optional, off by default, on/off available, off disables IPV6 in NordVPN app
+      #- NORDVPN_LOGIN=<email or token> #Not required if using secrets
+      #- NORDVPN_PASS=<pass> #Not required if using secrets or token in above `NORDVPN_LOGIN=token`
+      #- DEBUG=0 #(0/1) activate debug mode for scripts, dante, tinyproxy
+      #- LOCAL_NETWORK=192.168.1.0/24 #LAN subnet to route through proxies and vpn.
+      #- TINYLOGLEVEL=error #Optional, default error: Critical (least verbose), Error, Warning, Notice, Connect (to log connections without info's noise), Info
       #- TINYPORT=8888 #define tinyport inside the container, optional, 8888 by default,
       #- DANTE_LOGLEVEL="error" #Optional, error by default, available values: connect disconnect error data
       - DANTE_ERRORLOG=/dev/stdout #Optional, /dev/null by default
-        #- DANTE_DEBUG=0 # Optional, 0-9
-        #- GENERATE_WIREGUARD_CONF=true #write /etc/wireguard/wg0.conf if true
+      #- DANTE_DEBUG=0 # Optional, 0-9
+      #- GENERATE_WIREGUARD_CONF=true #write /etc/wireguard/wg0.conf if true
     secrets:
       - NORDVPN_CREDS
 
@@ -145,8 +142,8 @@ secrets:
 ```
 
 ### Troubleshoot
-
 Enter the container: `docker compose exec lynx bash`
+
 Several aliases are available:
 * checkhttp: get external ip through http proxy and vpn. should be the same as `checkip`
 * checksocks: get external ip through socks proxy and vpn. should be the same as `checkip`
