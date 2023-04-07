@@ -14,7 +14,7 @@
 
 # nordlynx-proxy
 
-[NordVPN client's version](https://nordvpn.com/fr/blog/nordvpn-linux-release-notes/) or [changelog](https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/nordvpn_3.16.1_amd64.changelog): 3.16.1 (23/03/24)
+[NordVPN client's version](https://nordvpn.com/fr/blog/nordvpn-linux-release-notes/) or [changelog](https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/nordvpn_3.16.1_amd64.changelog): 3.16.1 (24-03-2023)
 
 Warning 1: login process is sometimes unstable: 
 ```
@@ -89,8 +89,8 @@ Might be needed, if NordVPN cannot change the settings itself.
 * TECHNOLOGY: [NordLynx]/[OpenVPN], default: NordLynx (wireguard like)
 * CONNECT: [country]/[server]/[country_code]/[city] or [country] [city], if none provide you will connect to the recommended server.
 * [COUNTRY](https://api.nordvpn.com/v1/servers/countries): define the exit country.
-* [GROUP](https://api.nordvpn.com/v1/servers/groups): Africa_The_Middle_East_And_India, Asia_Pacific, Europe, Onion_Over_VPN, P2P, Standard_VPN_Servers, The_Americas, although many categories are possible, p2p seems more adapted.
-* NORDVPN_LOGIN: email or token(As of 21/07/25, Service credentials are not allowed.)
+* [GROUP](https://api.nordvpn.com/v1/servers/groups): Africa_The_Middle_East_And_India, Asia_Pacific, Europe, Onion_Over_VPN, P2P, Standard_VPN_Servers, The_Americas, although many categories are possible, p2p seems to be more adapted.
+* NORDVPN_LOGIN: email or token (as of 25-07-21, service credentials are not allowed).
 * NORDVPN_PASS: pass or empty when using token
 * CYBER_SEC, default off
 * KILLERSWITCH, default on
@@ -100,7 +100,7 @@ Might be needed, if NordVPN cannot change the settings itself.
 * DOCKER_NET: optional, docker CIDR extracted from container ip if not set. 
 
 ### Authentication
-As of 22/12/23, login with username and password are deprecated, as well as legacy. Username and password logins are allowed in the container, but may not be allowed by NordVPN. Login with a token is highly recommended. Tokens can be gernerated in your [NordAccount](https://my.nordaccount.com/dashboard/nordvpn).
+As of 23-12-2022, login with username and password are deprecated, as well as legacy. Username and password logins are allowed in the container, but may not be allowed by NordVPN. Login with a token is highly recommended. Tokens can be generated in your [NordAccount](https://my.nordaccount.com/dashboard/nordvpn).
 
 ### docker-compose example with env variables explained
 
