@@ -98,7 +98,7 @@ setTimeZone
 if [[ -f /app/logAll.sh ]]; then
   /app/logAll.sh
 else
-  log "INFO: logall feature not availablebmw
+  log "INFO: logall feature not available
   "
 fi
 #exit if required vars are missing
