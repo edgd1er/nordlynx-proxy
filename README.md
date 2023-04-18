@@ -117,7 +117,7 @@ services:
     environment:
       - TZ=America/Chicago
       #- CONNECT= #Optional, overrides COUNTRY, specify country+server number for example: uk715
-      - COUNTRY=de #Optional, by default, servers in user's coyntry.
+      - COUNTRY=de #Set NordVPN server country to connect to.
       - GROUP=P2P #Africa_The_Middle_East_And_India, Asia_Pacific, Europe, Onion_Over_VPN, P2P, Standard_VPN_Servers, The_Americas
       #- KILLERSWITCH=on #Optional, on by default, kill switch is a feature helping you prevent unprotected access to the internet when your traffic doesn't go through a NordVPN server.
       #- CYBER_SEC=off #CyberSec is a feature protecting you from ads, unsafe connections and malicious sites
