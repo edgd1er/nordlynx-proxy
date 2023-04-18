@@ -8,7 +8,7 @@ DANTE_CONF=/etc/sockd.conf
 DANTE_DEBUG=${DANTE_DEBUG:-0}
 DANTE_LOGLEVEL=${DANTE_LOGLEVEL:-""}
 DANTE_ERRORLOG=${DANTE_ERRORLOG:-"Error"}
-INTERFACE=$(ifconfig | grep -oE "(tun|nordlynx)")
+INTERFACE=$(ifconfig | grep -oE "(nordtun|nordlynx)")
 DANTE_LOGLEVEL=${DANTE_LOGLEVEL//\"/}
 DANTE_ERRORLOG=${DANTE_ERRORLOG//\"/}
 

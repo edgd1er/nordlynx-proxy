@@ -46,7 +46,7 @@ setup_nordvpn() {
   nordvpn whitelist add subnet ${DOCKER_NET}
   [[ -n ${NETWORK:-''} ]] && for net in ${NETWORK//[;,]/ }; do nordvpn whitelist add subnet ${net}; done
   [[ -n ${PORTS:-''} ]] && for port in ${PORTS//[;,]/ }; do nordvpn whitelist add port ${port}; done
-  [[ ${DEBUG} ]] && nordvpn -version && nordvpn settings
+  [[ ${DEBUG} ]] && nordvpn version && nordvpn settings
   nordvpn whitelist add subnet ${LOCALNET}.0.0/16
   if [[ -n ${LOCAL_NETWORK:-''} ]]; then
     eval $(/sbin/ip route list match 0.0.0.0 | awk '{if($5!="tun0"){print "GW="$3"\nINT="$5; exit}}')
@@ -120,7 +120,8 @@ while [ ! -S ${RDIR}/nordvpnd.sock ]; do
 done
 
 #make /dev/tun if missing
-[[ ${TECHNOLOGY} =~ nordlynx ]] && mkTun || true
+#[[ ${TECHNOLOGY} =~ nordlynx ]] && mkTun || true
+mkTun
 enforce_proxies_iptables
 
 

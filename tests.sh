@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
+
 set -euop pipefail
 
 #var
 PROXY_HOST="localhost"
+#PROXY_HOST="omv.mission.lan"
+#PROXY_HOST="holdom3.mission.lan"
 HTTP_PORT=9888
 SOCK_PORT=2081
 FAILED=0
@@ -14,7 +17,7 @@ CONTAINER=lynx
 runandWait() {
   echo "Stopping and removing running containers"
   docker compose down -v
-  echo "Starting image"
+  echo "Building and starting image"
   docker compose -f docker-compose.yml up -d
   echo "Waiting for the container to be up.(every ${INTERVAL} sec)"
   logs=""
@@ -41,7 +44,7 @@ buildAndWait() {
   while [ 0 -eq $(echo $logs | grep -c "exited: start_vpn (exit status 0; expected") ]; do
     logs="$(docker compose logs)"
     sleep ${INTERVAL}
-    ((n += 1))
+    ((n+=1))
     echo "loop: ${n}: $(docker compose logs | tail -1)"
     [[ ${n} -eq 15 ]] && break || true
   done
@@ -66,7 +69,7 @@ testProxies() {
   if [[ -n $(which nc) ]]; then
     areProxiesPortOpened
   fi
-  vpnIP=$(curl -m5 -sx http://${PROXY_HOST}:${HTTP_PORT} "https://ifconfig.me/ip")
+  vpnIP=$(curl -m5 -sx http://${PROXY_HOST}:${HTTP_PORT} "https://ifconfig.me/ip") || true
   if [[ $? -eq 0 ]] && [[ ${myIp} != "${vpnIP}" ]] && [[ ${#vpnIP} -gt 0 ]]; then
     echo "http proxy: IP is ${vpnIP}, mine is ${myIp}"
   else
@@ -76,7 +79,7 @@ testProxies() {
   fi
 
   #check detected ips
-  vpnIP=$(curl -m5 -sx socks5://${PROXY_HOST}:${SOCK_PORT} "https://ifconfig.me/ip")
+  vpnIP=$(curl -m5 -sx socks5://${PROXY_HOST}:${SOCK_PORT} "https://ifconfig.me/ip") || true
   if [[ $? -eq 0 ]] && [[ ${myIp} != "${vpnIP}" ]] && [[ ${#vpnIP} -gt 0 ]]; then
     echo "socks proxy: IP is ${vpnIP}, mine is ${myIp}"
   else
@@ -89,19 +92,11 @@ testProxies() {
   return ${FAILED}
 }
 
-getInterfacesInfo() {
+getInterfacesInfo(){
   docker compose exec ${CONTAINER} bash -c "ip -j a |jq  '.[]|select(.ifname|test(\"wg0|tun|nordlynx\"))|.ifname'"
   docker compose exec ${CONTAINER} echo -e "eth0: $(ip -j a | jq -r '.[] |select(.ifname=="eth0")| .addr_info[].local')\n wg0: $(ip -j a | jq -r '.[] |select(.ifname=="wg0")| .addr_info[].local')\nnordlynx: $(ip -j a | jq -r '.[] |select(.ifname=="nordlynx")| .addr_info[].local')"
   docker compose exec ${CONTAINER} bash -c 'echo "nordlynx conf: $(wg showconf nordlynx 2>/dev/null)"'
   docker compose exec ${CONTAINER} bash -c 'echo "wg conf: $(wg showconf wg0 2>/dev/null)"'
-}
-
-checkCountry() {
-  if [[ 0 -eq $(docker compose logs |grep -ic "country: germany") ]]; then
-    echo "Error, not connected to Germany"
-  else
-    echo "Connected to Germany"
-  fi
 }
 
 #Main
@@ -119,7 +114,6 @@ if [[ "localhost" == "${PROXY_HOST}" ]] && [[ 1 -eq ${BUILD} ]]; then
   # check returned IP through http and socks proxy
   testProxies
   getInterfacesInfo
-  checkCountry
   [[ 1 -eq ${BUILD} ]] && docker compose down
 else
   echo "***************************************************"
@@ -127,5 +121,5 @@ else
   echo "***************************************************"
   # check returned IP through http and socks proxy
   testProxies
-  checkCountry
+  getInterfacesInfo
 fi

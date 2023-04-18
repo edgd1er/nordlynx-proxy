@@ -30,7 +30,7 @@ Warning 3: at the moment, the container is not set to run with generated wiregua
 
 
 ### Description
-This is a NordVPN docker container that connects to the NordVPN recommended servers using the NordVPN Linux client. It starts a SOCKS5 proxy server (dante) and a HTTP proxy server to use it as a NordVPN gateway. After this operation, 317 MB of additional disk space will be used. (nordlynx-proxy-wg image is built to compare sizes). OpenVPN and NordLynx technology are available through NordVPN settings technology. Whenever the connection is lost, the NordVPN client has a killswitch to obliterate the connection.
+This is a NordVPN docker container that connects to the NordVPN recommended servers using the NordVPN Linux client. It starts a SOCKS5 proxy server (dante) and a HTTP proxy server to use it as a NordVPN gateway. When using wireguard tools, useful to extract wireguard configuration , 317 MB of additional disk space will be used. (nordlynx-proxy-wg image is built to compare sizes). OpenVPN and NordLynx technology are available through NordVPN settings technology. Whenever the connection is lost, the NordVPN client has a killswitch to obliterate the connection.
 
 ### Exporting WireGuard config
 If environment variable `GENERATE_WIREGUARD_CONF=true` is set, the WireGuard configuration is saved to `/etc/wireguard/wg0.conf` when connecting.

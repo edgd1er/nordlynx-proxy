@@ -81,7 +81,7 @@ checkLatestApt() {
 }
 
 getExtIp() {
-  ip -4 a show nordlynx | grep -oP "(?<=inet )([^/]+)"
+ ( ip -4 a show nordlynx 2>/dev/null || ip -4 a show nordtun 2>/dev/null ) | grep -oP "(?<=inet )([^/]+)"
 }
 
 getEthIp() {
