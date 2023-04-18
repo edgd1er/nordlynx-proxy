@@ -37,10 +37,15 @@ setIPV6() {
 #setIPV6 ${IPV6}
 
 setup_nordvpn() {
-  nordvpn set technology ${TECHNOLOGY:-'NordLynx'}
+  nordvpn set analytics ${ANALYTICS}
+  nordvpn set technology ${TECHNOLOGY,,}
   nordvpn set cybersec ${CYBER_SEC:-'off'}
   nordvpn set killswitch ${KILLERSWITCH:-'on'}
   nordvpn set ipv6 ${IPV6} 2>/dev/null
+  #obfuscate only available to openvpn(tcp or udp)
+  if [[ ${OBFUSCATE,,} == "on" ]] && [[ ${TECHNOLOGY,,} = 'openvpn' ]]; then
+    nordvpn set obfuscate ${OBFUSCATE:-'off'}
+  fi
   [[ -n ${DNS:-''} ]] && nordvpn set dns ${DNS//[;,]/ }
   [[ -z ${DOCKER_NET:-''} ]] && DOCKER_NET="$(hostname -i | grep -Eom1 "^[0-9]{1,3}\.[0-9]{1,3}").0.0/12"
   nordvpn whitelist add subnet ${DOCKER_NET}
@@ -93,6 +98,11 @@ extractLynxConf() {
 #Overwrite docker dns as it may fail with specific configuration (dns on server/container crash)
 echo "nameserver 1.1.1.1" >/etc/resolv.conf
 setTimeZone
+
+#Define if not defined
+TECHNOLOGY=${TECHNOLOGY:-'nordlynx'}
+OBFUSCATE=${OBFUSCATE:-'off'}
+
 
 #log all if required: IPTABLES_LOG=1
 if [[ -f /app/logAll.sh ]]; then
