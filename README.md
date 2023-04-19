@@ -86,6 +86,7 @@ Might be needed, if NordVPN cannot change the settings itself.
 ## Environment options
 * ANALYTICS: [off/on], default on, send anonymous aggregate data: crash reports, OS version, marketing performance, and feature usage data
 * TECHNOLOGY: [NordLynx]/[OpenVPN], default: NordLynx (wireguard like)
+* PROTOCOL: udp (default), tcp. Can only be used with TECHNOLOGY=OpenVPN.
 * [OBFUSCATE](https://nordvpn.com/features/obfuscated-servers/): [off/on], default off, hide vpn's use.
 * CONNECT: [country]/[server]/[country_code]/[city] or [country] [city], if none provide you will connect to the recommended server.
 * [COUNTRY](https://api.nordvpn.com/v1/servers/countries): define the exit country.
@@ -123,8 +124,9 @@ services:
       - GROUP=P2P #Africa_The_Middle_East_And_India, Asia_Pacific, Europe, Onion_Over_VPN, P2P, Standard_VPN_Servers, The_Americas
       #- KILLERSWITCH=on #Optional, on by default, kill switch is a feature helping you prevent unprotected access to the internet when your traffic doesn't go through a NordVPN server.
       #- CYBER_SEC=off #CyberSec is a feature protecting you from ads, unsafe connections and malicious sites
-      #- TECHNOLOGY=NordLynx #openvpn or nordlynx
-      #- IPV6=off #optional, off by default, on/off available, off disables IPV6 in NordVPN app
+      #- TECHNOLOGY=NordLynx #OpenVPN or NordLynx
+      #- PROTOCOL=udp #Optional, udp (default) or tcp. Can only be used with TECHNOLOGY=OpenVPN.
+      #- IPV6=off #Optional, off by default, on/off available, off disables IPV6 in NordVPN app
       #- NORDVPN_LOGIN=<email or token> #Not required if using secrets
       #- NORDVPN_PASS=<pass> #Not required if using secrets or token in above `NORDVPN_LOGIN=token`
       #- DEBUG=0 #(0/1) activate debug mode for scripts, dante, tinyproxy
