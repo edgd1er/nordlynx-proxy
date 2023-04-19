@@ -39,6 +39,9 @@ setIPV6() {
 setup_nordvpn() {
   nordvpn set analytics ${ANALYTICS}
   nordvpn set technology ${TECHNOLOGY,,}
+  if [[ ${PROTOCOL,,} == "tcp" ]] && [[ ${TECHNOLOGY,,} = 'openvpn' ]]; then
+      nordvpn set protocol ${PROTOCOL:-'udp'}
+  fi
   nordvpn set cybersec ${CYBER_SEC:-'off'}
   nordvpn set killswitch ${KILLERSWITCH:-'on'}
   nordvpn set ipv6 ${IPV6} 2>/dev/null
@@ -102,7 +105,7 @@ setTimeZone
 #Define if not defined
 TECHNOLOGY=${TECHNOLOGY:-'nordlynx'}
 OBFUSCATE=${OBFUSCATE:-'off'}
-
+PROTOCOL=${PROTOCOL:-'udp'}
 
 #log all if required: IPTABLES_LOG=1
 if [[ -f /app/logAll.sh ]]; then
