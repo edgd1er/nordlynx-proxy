@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 env:
-  NORDVPN_VERSION: 3.16.1
+  NORDVPN_VERSION: 3.16.2
   NORDVPN_PACKAGE: https://repo.nordvpn.com/deb/nordvpn/debian/dists/stable/main/binary-amd64/Packages
 
 jobs:

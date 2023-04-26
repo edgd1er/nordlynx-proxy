@@ -11,7 +11,7 @@ on:
       - 'README.md'
 env:
   IMAGE: nordlynx-proxy-wg
-  VERSION: 3.16.1
+  VERSION: 3.16.2
   TAG: latest
   WG: true
 
