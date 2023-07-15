@@ -6,8 +6,7 @@ SHELL:=bash
 # Enable BuildKit for Docker build
 export DOCKER_BUILDKIT:=1
 export COMPOSE_DOCKER_CLI_BUILD:=1
-export VERSION=3.16.3
-
+export NORDVPN_PACKAGE:=https://repo.nordvpn.com/deb/nordvpn/debian/dists/stable/main/binary-amd64/Packages
 
 # https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 help: ## generate help list
@@ -24,6 +23,10 @@ build: ## build image
 run: ## run container
 	@echo "run container"
 	docker compose up
+
+check: ##check Version
+	@echo "local  version: "$$(grep -oP "(?<=changelog\): )[^ ]+" README.md)
+	@echo "remote version: "$$(curl -Ls "${NORDVPN_PACKAGE}" | grep -oP "(?<=Version: )(.*)" | sort -t. -n -k1,1 -k2,2 -k3,3 | tail -1)
 
 actcheck: ## GHA check nordvpn app version
 	@act -r -j check_version -P ubuntu-latest=nektos/act-environments-ubuntu:20.04

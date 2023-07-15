@@ -5,16 +5,18 @@ on:
   workflow_dispatch:
 
 env:
-  NORDVPN_VERSION: 3.16.3
   NORDVPN_PACKAGE: https://repo.nordvpn.com/deb/nordvpn/debian/dists/stable/main/binary-amd64/Packages
 
 jobs:
   check_version:
     runs-on: ubuntu-latest
     steps:
+      - name: checkout code
+        uses: actions/checkout@v3
       - name: get latest version
         id: getlatestversion
         run: |
+          localver=$(grep -oP "(?<=changelog\): )[^ ]+" README.md)
           ver=$(curl -s "${{ env.NORDVPN_PACKAGE }}" | grep -oP "(?<=Version: )(.*)" | sort -t. -n -k1,1 -k2,2 -k3,3 | tail -1)
-          echo "image version: ${{ env.NORDVPN_VERSION }}, latest nordvpn version: ${ver}"
-          if [[ ${{ env.NORDVPN_VERSION }} != ${ver} ]]; then exit 1; fi
+          echo "image version: ${localver}, latest nordvpn version: ${ver}"
+          if [[ ${localver:-'1'} != ${ver:-'2'} ]]; then exit 1; fi
