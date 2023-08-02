@@ -14,7 +14,7 @@
 
 # nordlynx-proxy
 
-[NordVPN client's version](https://nordvpn.com/fr/blog/nordvpn-linux-release-notes/) or [changelog](https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/nordvpn_3.16.3_amd64.changelog): 3.16.3 (02-06-2023)
+[NordVPN client's version](https://nordvpn.com/fr/blog/nordvpn-linux-release-notes/) or [changelog](https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/nordvpn_3.16.4_amd64.changelog): 3.16.4 (02-08-2023)
 
 Warning 1: login process is sometimes unstable: 
 ```
@@ -130,7 +130,7 @@ services:
       #- NORDVPN_LOGIN=<email or token> #Not required if using secrets
       #- NORDVPN_PASS=<pass> #Not required if using secrets or token in above `NORDVPN_LOGIN=token`
       #- DEBUG=0 #(0/1) activate debug mode for scripts, dante, tinyproxy
-      #- LOCAL_NETWORK=192.168.1.0/24 #LAN subnet to route through proxies and vpn.
+      - LOCAL_NETWORK=192.168.1.0/24 #LAN subnet to route through proxies and vpn.
       #- TINYLOGLEVEL=error #Optional, default error: Critical (least verbose), Error, Warning, Notice, Connect (to log connections without info's noise), Info
       #- TINYPORT=8888 #define tinyport inside the container, optional, 8888 by default,
       #- DANTE_LOGLEVEL="error" #Optional, error by default, available values: connect disconnect error data

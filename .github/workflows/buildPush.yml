@@ -23,7 +23,8 @@ jobs:
         uses: docker/setup-qemu-action@v2
       - name: get nordvpn's client version
         run: |
-            echo "VERSION="$(grep -oP "(?<=changelog\): )[^ ]+" README.md | tr -d ' ') >> $GITHUB_ENV
+          grep -oP "(?<=changelog\): )[^ ]+" README.md | tr -d ' '
+          echo "VERSION="$(grep -oP "(?<=changelog\): )[^ ]+" README.md | tr -d ' ') >> $GITHUB_ENV
       - name: Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@v2
