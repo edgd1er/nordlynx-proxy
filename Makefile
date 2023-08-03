@@ -2,6 +2,7 @@
 
 # Use bash for inline if-statements in arch_patch target
 SHELL:=bash
+NEWVERSION := $(shell grep -oE 'changelog.: .+' README.md | cut -f2 -d' ')
 
 # Enable BuildKit for Docker build
 export DOCKER_BUILDKIT:=1
@@ -27,6 +28,10 @@ run: ## run container
 check: ##check Version
 	@echo "local  version: "$$(grep -oP "(?<=changelog\): )[^ ]+" README.md)
 	@echo "remote version: "$$(curl -Ls "${NORDVPN_PACKAGE}" | grep -oP "(?<=Version: )(.*)" | sort -t. -n -k1,1 -k2,2 -k3,3 | tail -1)
+	@echo "NEWVERSION: $(NEWVERSION)"
+	@sed -i -E "s/VERSION:.+/VERSION: ${NEWVERSION}/" docker-compose.yml
+	@sed -i -E "s/VERSION=.+/VERSION=${NEWVERSION}/" Dockerfile
+	@grep -E 'VERSION[:=].+' Dockerfile docker-compose.yml
 
 actcheck: ## GHA check nordvpn app version
 	@act -r -j check_version -P ubuntu-latest=nektos/act-environments-ubuntu:20.04
