@@ -1,7 +1,7 @@
 #FROM debian:bullseye-slim
 FROM debian:bookworm-slim
 ARG aptcacher
-ARG VERSION=3.16.5
+ARG VERSION=3.16.6
 ARG TZ=America/Chicago
 ARG WG=false
 
@@ -47,6 +47,9 @@ RUN if [[ -n "${aptcacher}" ]]; then echo "Acquire::http::Proxy \"http://${aptca
     # nordvpn requirements
     iproute2 iptables readline-common dirmngr gnupg gnupg-l10n gnupg-utils gpg gpg-agent gpg-wks-client \
     gpg-wks-server gpgconf gpgsm libassuan0 libksba8 libnpth0 libreadline8 libsqlite3-0 lsb-base pinentry-curses \
+    #check conf template with package conf
+    && diff /etc/tinyproxy/tinyproxy.conf /etc/tinyproxy.conf.tmpl || true \
+    && diff /etc/dante/danted.conf /etc/danted.conf.tmpl || true \
     #wireguard
     && if [[ ${WG} != false ]]; then apt-get -o Dpkg::Options::="--force-confold" install -y --no-install-recommends wireguard wireguard-tools; fi \
     && wget -nv -t10 -O /tmp/nordrepo.deb https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/nordvpn-release_1.0.0_all.deb \

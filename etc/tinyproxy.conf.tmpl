@@ -1,9 +1,9 @@
-##
+## https://raw.githubusercontent.com/tinyproxy/tinyproxy/master/etc/tinyproxy.conf.in
 ## tinyproxy.conf -- tinyproxy daemon configuration file
 ##
 ## This example tinyproxy.conf file contains example settings
 ## with explanations in comments. For decriptions of all
-## parameters, see the tinproxy.conf(5) manual page.
+## parameters, see the tinyproxy.conf(5) manual page.
 ##
 
 #
@@ -106,12 +106,12 @@ StatFile "/usr/share/tinyproxy/stats.html"
 # LogLevel: Warning
 #
 # Set the logging level. Allowed settings are:
-#     Critical        (least verbose)
-#     Error
-#     Warning
-#     Notice
-#     Connect         (to log connections without Info's noise)
-#     Info            (most verbose)
+#	Critical	(least verbose)
+#	Error
+#	Warning
+#	Notice
+#	Connect		(to log connections without Info's noise)
+#	Info		(most verbose)
 #
 # The LogLevel logs from the set level and above. For example, if the
 # LogLevel was set to Warning, then all log messages from Warning to
@@ -191,30 +191,6 @@ upstream socks5 localhost:1080
 MaxClients 100
 
 #
-# MinSpareServers/MaxSpareServers: These settings set the upper and
-# lower limit for the number of spare servers which should be available.
-#
-# If the number of spare servers falls below MinSpareServers then new
-# server processes will be spawned.  If the number of servers exceeds
-# MaxSpareServers then the extras will be killed off.
-#
-MinSpareServers 5
-MaxSpareServers 20
-
-#
-# StartServers: The number of servers to start initially.
-#
-StartServers 10
-
-#
-# MaxRequestsPerChild: The number of connections a thread will handle
-# before it is killed. In practise this should be set to 0, which
-# disables thread reaping. If you do notice problems with memory
-# leakage, then set this to something like 10000.
-#
-MaxRequestsPerChild 0
-
-#
 # Allow: Customization of authorization controls. If there are any
 # access control keywords then the default action is to DENY. Otherwise,
 # the default action is ALLOW.
@@ -269,10 +245,9 @@ ViaProxyName "tinyproxy"
 #FilterURLs On
 
 #
-# FilterExtended: Use POSIX Extended regular expressions rather than
-# basic.
+# FilterType: Use bre (default), ere, or fnmatch for filtering.
 #
-#FilterExtended On
+#FilterType fnmatch
 
 #
 # FilterCaseSensitive: Use case sensitive regular expressions.
@@ -312,8 +287,8 @@ ViaProxyName "tinyproxy"
 #
 # The following two ports are used by SSL.
 #
-ConnectPort 443
-ConnectPort 563
+#ConnectPort 443
+#ConnectPort 563
 
 #
 # Configure one or more ReversePath directives to enable reverse proxy
@@ -326,8 +301,8 @@ ConnectPort 563
 # http://localhost:8888/wired/news/. Neither will actually work
 # until you uncomment ReverseMagic as they use absolute linking.
 #
-#ReversePath "/google/"       "http://www.google.com/"
-#ReversePath "/wired/"        "http://www.wired.com/"
+#ReversePath "/google/"	"http://www.google.com/"
+#ReversePath "/wired/"	"http://www.wired.com/"
 
 #
 # When using tinyproxy as a reverse proxy, it is STRONGLY recommended
