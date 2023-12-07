@@ -25,13 +25,15 @@ run: ## run container
 	@echo "run container"
 	docker compose up
 
-check: ##check Version
-	@echo "local  version: "$$(grep -oP "(?<=changelog\): )[^ ]+" README.md)
-	@echo "remote version: "$$(curl -Ls "${NORDVPN_PACKAGE}" | grep -oP "(?<=Version: )(.*)" | sort -t. -n -k1,1 -k2,2 -k3,3 | tail -1)
-	@echo "NEWVERSION: $(NEWVERSION)"
-	@sed -i -E "s/VERSION:.+/VERSION: ${NEWVERSION}/" docker-compose.yml
-	@sed -i -E "s/VERSION=.+/VERSION=${NEWVERSION}/" Dockerfile
-	@grep -E 'VERSION[:=].+' Dockerfile docker-compose.yml
+check: ## check Version
+	@LV=$$(grep -oP "(?<=changelog\): )[^ ]+" README.md) ; \
+	echo "local  version: $${LV}" ; \
+	NV=$$(curl -Ls "${NORDVPN_PACKAGE}" | grep -oP "(?<=Version: )(.*)" | sort -t. -n -k1,1 -k2,2 -k3,3 | tail -1) ;\
+	echo "remote version: $${NV}" ;\
+	echo "NEWVERSION: $${NV}" ; \
+	sed -i -E "s/VERSION:.*/VERSION: $${NV}/" docker-compose.yml ; \
+	sed -i -E "s/VERSION=.*/VERSION=$${NV}/" Dockerfile ; \
+	grep -E 'VERSION[:=].+' Dockerfile docker-compose.yml ;
 
 actcheck: ## GHA check nordvpn app version
 	@act -r -j check_version -P ubuntu-latest=nektos/act-environments-ubuntu:20.04

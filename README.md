@@ -15,7 +15,7 @@
 # nordlynx-proxy
 
 [NordVPN client's version](https://nordvpn.com/fr/blog/nordvpn-linux-release-notes/) or [changelog](
-https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/nordvpn_3.16.8_amd64.changelog): 3.16.8 (14-11-2023)
+https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/nordvpn_3.16.9_amd64.changelog): 3.16.9 (7-12-2023)
 
 Warning 1: login process is sometimes unstable: 
 ```
