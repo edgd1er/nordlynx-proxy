@@ -18,9 +18,9 @@ set_iptables() {
 
 enforce_proxies_iptables() {
   log "proxies: allow ports 1080, ${TINYPORT}"
-  nordvpn whitelist add port 1080 protocol TCP
-  nordvpn whitelist add port 1080 protocol UDP
-  nordvpn whitelist add port ${TINYPORT} protocol TCP
+  nordvpn whitelist add port 1080 protocol TCP || true
+  nordvpn whitelist add port 1080 protocol UDP || true
+  nordvpn whitelist add port ${TINYPORT} protocol TCP || true
   iptables -L
 }
 
@@ -51,18 +51,18 @@ setup_nordvpn() {
   fi
   [[ -n ${DNS:-''} ]] && nordvpn set dns ${DNS//[;,]/ }
   [[ -z ${DOCKER_NET:-''} ]] && DOCKER_NET="$(hostname -i | grep -Eom1 "^[0-9]{1,3}\.[0-9]{1,3}").0.0/12"
-  nordvpn whitelist add subnet ${DOCKER_NET}
-  [[ -n ${NETWORK:-''} ]] && for net in ${NETWORK//[;,]/ }; do nordvpn whitelist add subnet ${net}; done
-  [[ -n ${PORTS:-''} ]] && for port in ${PORTS//[;,]/ }; do nordvpn whitelist add port ${port}; done
+  nordvpn whitelist add subnet ${DOCKER_NET} || true
+  [[ -n ${NETWORK:-''} ]] && for net in ${NETWORK//[;,]/ }; do nordvpn whitelist add subnet ${net}  || true; done
+  [[ -n ${PORTS:-''} ]] && for port in ${PORTS//[;,]/ }; do nordvpn whitelist add port ${port}  || true; done
   [[ ${DEBUG} ]] && nordvpn version && nordvpn settings
-  nordvpn whitelist add subnet ${LOCALNET}.0.0/16
+  nordvpn whitelist add subnet ${LOCALNET}.0.0/16  || true
   if [[ -n ${LOCAL_NETWORK:-''} ]]; then
     eval $(/sbin/ip route list match 0.0.0.0 | awk '{if($5!="tun0"){print "GW="$3"\nINT="$5; exit}}')
     log "LOCAL_NETWORK: ${LOCAL_NETWORK}, Gateway: ${GW}, device ${INT}"
     if [[ -n ${GW:-""} ]] && [[ -n ${INT:-""} ]]; then
       for localNet in ${LOCAL_NETWORK//,/ }; do
         log "INFO: NORDVPN: whitelisting network ${localNet}"
-        nordvpn whitelist add subnet ${localNet}
+        nordvpn whitelist add subnet ${localNet}  || true
         log "INFO: NORDVPN: adding route to local network ${localNet} via ${GW} dev ${INT}"
         /sbin/ip route add "${localNet}" via "${GW}" dev "${INT}"
       done
