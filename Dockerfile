@@ -1,6 +1,6 @@
 FROM debian:bookworm-slim
 ARG aptcacher
-ARG VERSION=3.16.9
+ARG VERSION=3.17.0
 ARG TZ=America/Chicago
 ARG WG=false
 
