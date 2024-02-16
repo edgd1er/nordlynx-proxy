@@ -54,7 +54,7 @@ setup_nordvpn() {
   nordvpn whitelist add subnet ${DOCKER_NET} || true
   [[ -n ${NETWORK:-''} ]] && for net in ${NETWORK//[;,]/ }; do nordvpn whitelist add subnet ${net}  || true; done
   [[ -n ${PORTS:-''} ]] && for port in ${PORTS//[;,]/ }; do nordvpn whitelist add port ${port}  || true; done
-  [[ ${DEBUG} ]] && nordvpn version && nordvpn settings
+  [[ 0 -ne ${DEBUG} ]] && nordvpn version && nordvpn settings
   nordvpn whitelist add subnet ${LOCALNET}.0.0/16  || true
   if [[ -n ${LOCAL_NETWORK:-''} ]]; then
     eval $(/sbin/ip route list match 0.0.0.0 | awk '{if($5!="tun0"){print "GW="$3"\nINT="$5; exit}}')
@@ -99,8 +99,14 @@ extractLynxConf() {
 
 #Main
 #Overwrite docker dns as it may fail with specific configuration (dns on server/container crash)
-echo "nameserver 1.1.1.1" >/etc/resolv.conf
+#echo -e "nameserver 1.1.1.1\noptions timeout: 1 attempts:1 ndots:0" >/etc/resolv.conf
 setTimeZone
+
+#check if installed nordvpn app is the latest available
+# checkLatest
+#[[ 1 -eq $? ]] && checkLatestApt
+checkLatestApt
+installedRequiredNordVpnClient
 
 #Define if not defined
 TECHNOLOGY=${TECHNOLOGY:-'nordlynx'}
@@ -154,7 +160,7 @@ if [ -e /run/secrets/NORDVPN_CREDS ]; then
     NORDVPN_PASS=${vars[1]}
     logincmd="login --username ${vars[0]} --password ${vars[1]}"
   elif [[ ${#vars[*]} -eq 1 ]]; then
-    log "WARNING: Only one line found, assuming token."
+    log "INFO: Only one line found, assuming token."
     NORDVPN_LOGIN=${vars[0]}
     NORDVPN_PASS=''
     logincmd="login --token ${vars[0]}"
@@ -193,11 +199,6 @@ status=$(nordvpn status)
 server=$(echo -e "${status}" | grep -oP "(?<=server: ).+")
 serverIp=$(echo -e "${status}" | grep -oP "(?<=IP: ).+")
 extractLynxConf
-
-#check if installed nordvpn app is the latest available
-# checkLatest
-#[[ 1 -eq $? ]] && checkLatestApt
-checkLatestApt
 
 echo -e "${status}"
 curip=$(curl -s 'https://api.ipify.org?format=json' | jq .ip)

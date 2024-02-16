@@ -33,9 +33,9 @@ check: ## check Version
 	echo "NEWVERSION: $${NV}" ; \
 	sed -i -E "s/VERSION:.*/VERSION: $${NV}/" docker-compose.yml ; \
 	sed -i -E "s/VERSION=.*/VERSION=$${NV}/" Dockerfile ; \
-	grep -E 'VERSION[:=].+' Dockerfile docker-compose.yml ; \
-	sed -i -E "s/$${LV}/$${NV}/g" README.md ; \
-	grep 'changelogs' README.md
+	grep -HE 'VERSION[:=].+' Dockerfile docker-compose.yml ; \
+	sed -i "s/$$LV/$$NV/g" README.md ; \
+	grep -HoPm1 'nordvpn_[^(]+' README.md
 
 actcheck: ## GHA check nordvpn app version
 	@act -r -j check_version -P ubuntu-latest=nektos/act-environments-ubuntu:20.04

@@ -60,7 +60,6 @@ checkLatest() {
   else
     log "**********************************************************************"
     log "WARNING: please update nordvpn from version ${VERSION} to ${CANDIDATE}"
-    log "WARNING: please update nordvpn from version ${VERSION} to ${CANDIDATE}"
     log "**********************************************************************"
   fi
 }
@@ -70,18 +69,38 @@ checkLatestApt() {
   VERSION=$(apt-cache policy nordvpn | grep -oP "Installed: \K.+")
   CANDIDATE=$(apt-cache policy nordvpn | grep -oP "Candidate: \K.+")
   CANDIDATE=${CANDIDATE:-${VERSION}}
-  if [[ ${CANDIDATE} != "${VERSION}" ]]; then
+  if [[ ${CANDIDATE} != "${VERSION}" ]] && [[ ${VERSION} != ${NORDVPN_VERSION} ]]; then
     log "**********************************************************************"
-    log "WARNING: please update nordvpn from version ${VERSION} to ${CANDIDATE}"
     log "WARNING: please update nordvpn from version ${VERSION} to ${CANDIDATE}"
     log "**********************************************************************"
   else
-    log "INFO: checkLatestApt: No update needed for nordvpn (${VERSION})"
+    log "INFO: checkLatestApt: No update needed for nordvpn, current version is ${VERSION}, latest is ${CANDIDATE}."
+  fi
+}
+
+installedRequiredNordVpnClient() {
+  MAXVER=$(apt-cache policy nordvpn | grep -oP "Candidat.*: \K.+")
+  installed=$(apt-cache policy nordvpn | grep -oP "Install.*: \K.+")
+  NEW=${1:-${NORDVPN_VERSION}}
+  if [[ ${installed} != "${NEW}" ]]; then
+    log "*************************************************************************************"
+    log "INFO: current is ${installed}, installing nordvpn ${NEW}, latest version is ${MAXVER}"
+    log "*************************************************************************************"
+    log "INFO: stopping nordvpn's killswitch as 3.17.x have a bug preventing accessing to internet"
+    [[ -n $(pgrep nordvpnd 2>&1) ]] && nordvpn s killswitch false || true
+    apt-get update && apt-get install -y --allow-downgrades nordvpn=${NEW}
+    installed=${NEW}
+  fi
+  if [[ ${installed} =~ 3.17.[0-9] ]]; then
+    log "*************************************************************************************"
+    log "Warning: 3.17.x versions are failing tests. (unable to connect). set NORDVPN_VERSION "
+    log "Warning: to downgrade"
+    log "*************************************************************************************"
   fi
 }
 
 getExtIp() {
- ( ip -4 a show nordlynx 2>/dev/null || ip -4 a show nordtun 2>/dev/null ) | grep -oP "(?<=inet )([^/]+)"
+  (ip -4 a show nordlynx 2>/dev/null || ip -4 a show nordtun 2>/dev/null) | grep -oP "(?<=inet )([^/]+)"
 }
 
 getEthIp() {
@@ -104,10 +123,10 @@ getTinyListen() {
   grep -oP "(?<=^Listen )[0-9\.]+" /etc/tinyproxy/tinyproxy.conf
 }
 
-changeTinyListenAddress(){
+changeTinyListenAddress() {
   listen_ip4=$(getTinyListen)
   current_ip4=$(getEthIp)
-  if [[ ! -z ${listen_ip4} ]] && [[ ! -z ${current_ip4} ]] && [[ ${listen_ip4} != ${current_ip4} ]] ; then
+  if [[ ! -z ${listen_ip4} ]] && [[ ! -z ${current_ip4} ]] && [[ ${listen_ip4} != ${current_ip4} ]]; then
     #dante ecoute sur le nom de l'interface eth0
     echo "Tinyproxy: changing listening address from ${listen_ip4} to ${current_ip4}"
     sed -i "s/${listen_ip4}/${current_ip4}/" /etc/tinyproxy/tinyproxy.conf

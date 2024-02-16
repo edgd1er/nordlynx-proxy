@@ -15,7 +15,10 @@
 # nordlynx-proxy
 
 [NordVPN client's version](https://nordvpn.com/fr/blog/nordvpn-linux-release-notes/) or [changelog](
-https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/nordvpn_3.17.0_amd64.changelog): 3.17.0 (17-01-2024)
+https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/nordvpn_3.17.2_amd64.changelog): 3.17.2 (13-02-2024)
+
+Image with nordvpn's client 3.17.0/1/2 are not functionnal as tests are unsuccessful. set env var NORDVPN_VERSION to 3.16.9 for instance, to force a nordvpn package downgrade during setup process.
+
 
 Warning 1: login process is sometimes unstable: 
 ```
@@ -28,7 +31,6 @@ Logging in via ‘--legacy’, ‘--username’, and ‘--password’ flags is d
 ```
 
 Warning 3: at the moment, the container is not set to run with generated wireguard config file. (healthcheck, start checks, switch from NordVPN to WireGuard tools).
-
 
 ### Description
 This is a NordVPN docker container, based on debian bookworm, that connects to the NordVPN recommended servers using the NordVPN Linux client. It starts a SOCKS5 proxy server (dante) and a HTTP proxy server to use it as a NordVPN gateway. When using wireguard tools, useful to extract wireguard configuration , 317 MB of additional disk space will be used. (nordlynx-proxy-wg image is built to compare sizes). OpenVPN and NordLynx technology are available through NordVPN settings technology. Whenever the connection is lost, the NordVPN client has a killswitch to obliterate the connection.
@@ -157,14 +159,6 @@ Several aliases are available:
 * getcheck: get information as ip from nordvpn client.
 * getdante: print socks proxy configuration
 * gettiny: print http proxy configuration
+* getversion: install nordvpn specific version, allow downgrades eg 3.17.0, 3.17.1, ...
 
-```bash
-root@723b24ebe363:/app# alias
-alias checkhttp='curl -sm 10 -x http://${HOSTNAME}:${WEBPROXY_PORT:-8888} "https://ifconfig.me/ip";echo'
-alias checkip='curl -sm 10 "https://zx2c4.com/ip";echo'
-alias checksocks='curl -sm10 -x socks5://${HOSTNAME}:1080 "https://ifconfig.me/ip";echo'
-alias checkvpn='curl -sm 10 "https://api.nordvpn.com/vpn/check/full" | jq -r .status'
-alias getcheck='curl -sm 10 "https://api.nordvpn.com/vpn/check/full" | jq . '
-alias getdante='grep -vP "(^$|^#)" /etc/dante.conf'
-alias gettiny='grep -vP "(^$|^#)" /etc/tinyproxy/tinyproxy.conf'
-```
+From times to times, nordvpn app is bugged, installing another version (downgrade) may be a workaround.
