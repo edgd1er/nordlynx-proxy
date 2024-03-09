@@ -108,11 +108,6 @@ setTimeZone
 checkLatestApt
 installedRequiredNordVpnClient
 
-#Define if not defined
-TECHNOLOGY=${TECHNOLOGY:-'nordlynx'}
-OBFUSCATE=${OBFUSCATE:-'off'}
-PROTOCOL=${PROTOCOL:-'udp'}
-
 #log all if required: IPTABLES_LOG=1
 if [[ -f /app/logAll.sh ]]; then
   /app/logAll.sh

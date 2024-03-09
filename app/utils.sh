@@ -4,21 +4,24 @@
 DEBUG=${DEBUG:-0}
 [[ "true" == ${DEBUG} ]] && export DEBUG=1 || true
 
-COUNTRY=${COUNTRY:-''}
-CONNECT=${CONNECT:-''}
-GROUP=${GROUP:-''}
-IPV6=${IPV6:-'off'}
+#Define if not defined
 TECHNOLOGY=${TECHNOLOGY:-'nordlynx'}
+OBFUSCATE=${OBFUSCATE:-'off'}
+PROTOCOL=${PROTOCOL:-'udp'}
+GROUP=${GROUP:-'P2P'}
+COUNTRY=${COUNTRY:-'argentina'}
+CONNECT=${CONNECT:-''}
+IPV6=${IPV6:-'off'}
+GENERATE_WIREGUARD_CONF=${GENERATE_WIREGUARD_CONF:-"false"}
+HTTP_PORT=8888
+SOCK_PORT=1080
+
 [[ -n ${COUNTRY} && -z ${CONNECT} ]] && export CONNECT=${COUNTRY}
 [[ "${GROUPID:-''}" =~ ^[0-9]+$ ]] && groupmod -g $GROUPID -o vpn
 [[ -n ${GROUP} ]] && GROUP="--group ${GROUP}"
 #get container network (class B) to whitelist container subnet:  ${LOCALNET}.0.0/16
 LOCALNET=$(hostname -i | grep -Eom1 "(^[0-9]{1,3}\.[0-9]{1,3})")
-GENERATE_WIREGUARD_CONF=${GENERATE_WIREGUARD_CONF:-"false"}
-
 PROXY_HOST=$(ip -4 a show eth0 | grep -oP "(?<=inet )([^/]+)")
-HTTP_PORT=8888
-SOCK_PORT=1080
 
 if [[ 1 -eq ${DEBUG:-0} ]]; then
   set -x

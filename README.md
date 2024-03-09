@@ -74,7 +74,6 @@ nameserver 103.86.96.100
 nameserver 103.86.99.100
 ```
 
-
 ## Usage
 The container may use environment variables to select a server, otherwise the best recommended server is selected:
 See environment variables to get all available options or [NordVPN support](https://support.nordvpn.com/Connectivity/Linux/1325531132/Installing-and-using-NordVPN-on-Debian-Ubuntu-Raspberry-Pi-Elementary-OS-and-Linux-Mint.htm#Settings).
@@ -91,9 +90,9 @@ Might be needed, if NordVPN cannot change the settings itself.
 * TECHNOLOGY: [NordLynx]/[OpenVPN], default: NordLynx (wireguard like)
 * PROTOCOL: udp (default), tcp. Can only be used with TECHNOLOGY=OpenVPN.
 * [OBFUSCATE](https://nordvpn.com/features/obfuscated-servers/): [off/on], default off, hide vpn's use.
-* CONNECT: [country]/[server]/[country_code]/[city] or [country] [city], if none provide you will connect to the recommended server.
-* [COUNTRY](https://api.nordvpn.com/v1/servers/countries): define the exit country.
-* [GROUP](https://api.nordvpn.com/v1/servers/groups): Africa_The_Middle_East_And_India, Asia_Pacific, Europe, Onion_Over_VPN, P2P, Standard_VPN_Servers, The_Americas, although many categories are possible, p2p seems to be more adapted.
+* CONNECT: [country]/[server]/[country_code]/[city] or [country] [city], if none provide you will connect to argentina server.
+* [COUNTRY](https://api.nordvpn.com/v1/servers/countries): define the exit country, default argentina.
+* [GROUP](https://api.nordvpn.com/v1/servers/groups): Default P2P, value: Africa_The_Middle_East_And_India, Asia_Pacific, Europe, Onion_Over_VPN, P2P, Standard_VPN_Servers, The_Americas, although many categories are possible, p2p seems to be more adapted.
 * NORDVPN_LOGIN: email or token (as of 25-07-21, service credentials are not allowed).
 * NORDVPN_PASS: pass or empty when using token
 * CYBER_SEC, default off

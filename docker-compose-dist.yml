@@ -17,11 +17,11 @@ services:
       - LOCAL_NETWORK=192.168.0.0/24
       - ANALYTICS=off # or on, sending anonymous aggregate data: crash reports, OS version, marketing performance, and feature usage data
         #- CONNECT= #Optionnal, override COUNTRY, specify country+serveur number like uk715
-      - COUNTRY=de # required.
-      - GROUP=P2P #Africa_The_Middle_East_And_India, Asia_Pacific, Europe, Onion_Over_VPN, P2P, Standard_VPN_Servers, The_Americas
+      - COUNTRY=de # optional, default argentina.
+      - GROUP=P2P #default P2P, Africa_The_Middle_East_And_India, Asia_Pacific, Europe, Onion_Over_VPN, P2P, Standard_VPN_Servers, The_Americas
         #- KILLERSWITCH=on #Optional, on by default, kill Switch is a feature helping you prevent unprotected access to the internet when your traffic doesn't go through a NordVPN server.
         #- CYBER_SEC=off #CyberSec is a feature protecting you from ads, unsafe connections, and malicious sites
-      - TECHNOLOGY=NordLynx #openvpn or nordlynx
+      - TECHNOLOGY=NordLynx #openvpn or nordlynx (default)
       - OBFUSCATE=off # or on, obfuscate only available when using openvpn(tcp or udp), hide use of vpn.
         #- IPV6=off #optional, off by default, on/off available, off disable IPV6 in nordvpn app
         #- NORDVPN_LOGIN=<email> #Not required if using secrets
