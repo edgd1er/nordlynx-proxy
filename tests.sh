@@ -44,7 +44,7 @@ buildAndWait() {
   while [ 0 -eq $(echo $logs | grep -c "exited: start_vpn (exit status 0; expected") ]; do
     logs="$(docker compose logs)"
     sleep ${INTERVAL}
-    ((n+=1))
+    ((n += 1))
     echo "loop: ${n}: $(docker compose logs | tail -1)"
     [[ ${n} -eq 15 ]] && break || true
   done
@@ -92,34 +92,77 @@ testProxies() {
   return ${FAILED}
 }
 
-getInterfacesInfo(){
+getInterfacesInfo() {
   docker compose exec ${CONTAINER} bash -c "ip -j a |jq  '.[]|select(.ifname|test(\"wg0|tun|nordlynx\"))|.ifname'"
   docker compose exec ${CONTAINER} echo -e "eth0: $(ip -j a | jq -r '.[] |select(.ifname=="eth0")| .addr_info[].local')\n wg0: $(ip -j a | jq -r '.[] |select(.ifname=="wg0")| .addr_info[].local')\nnordlynx: $(ip -j a | jq -r '.[] |select(.ifname=="nordlynx")| .addr_info[].local')"
   docker compose exec ${CONTAINER} bash -c 'echo "nordlynx conf: $(wg showconf nordlynx 2>/dev/null)"'
   docker compose exec ${CONTAINER} bash -c 'echo "wg conf: $(wg showconf wg0 2>/dev/null)"'
 }
 
+checkContainer() {
+  if [[ "localhost" == "${PROXY_HOST}" ]] && [[ 1 -eq ${BUILD} ]]; then
+    buildAndWait
+    echo "***************************************************"
+    echo "Testing container"
+    echo "***************************************************"
+    # check returned IP through http and socks proxy
+    testProxies
+    getInterfacesInfo
+    [[ 1 -eq ${BUILD} ]] && docker compose down
+  else
+    echo "***************************************************"
+    echo "Testing container"
+    echo "***************************************************"
+    # check returned IP through http and socks proxy
+    testProxies
+    getInterfacesInfo
+  fi
+}
+
+ubuntuBuild() {
+  docker buildx build -f Dockerfile.nrd --build-arg VERSION=3.17.3 -t nordvpnu  .
+  TKN=$(<nordvpn_creds)
+  echo "nordvpn login -token ${TKN}"
+  #docker run -it --rm nordvpnu "nordvpn login -token ${TKN}; bash"
+  docker run --name nordvpnu --privileged --rm nordvpnu
+  docker exec -t nordvpnu "nordvpn login -token ${TKN}; nordvpn c -group p2p germany berlin;"
+}
+
+usage(){
+  echo "$0: build and test container"
+  echo -e "\t-b\tBuild and test"
+  echo -e "\t-t\tTest a running container"
+  echo -e "\t-u\tTest an ubuntu container (debug nordvpn client)"
+  echo -e "\t-h\tThis help"
+}
+
 #Main
 [[ -e /.dockerenv ]] && PROXY_HOST=
-
-#Check ports
-[[ ${1:-''} == "-t" ]] && BUILD=0 || BUILD=1
 myIp=$(curl -m5 -sq https://ifconfig.me/ip)
 
-if [[ "localhost" == "${PROXY_HOST}" ]] && [[ 1 -eq ${BUILD} ]]; then
-  buildAndWait
-  echo "***************************************************"
-  echo "Testing container"
-  echo "***************************************************"
-  # check returned IP through http and socks proxy
-  testProxies
-  getInterfacesInfo
-  [[ 1 -eq ${BUILD} ]] && docker compose down
-else
-  echo "***************************************************"
-  echo "Testing container"
-  echo "***************************************************"
-  # check returned IP through http and socks proxy
-  testProxies
-  getInterfacesInfo
-fi
+# Get the options
+while getopts ":bhtu" option; do
+  case ${option} in
+  b)
+    BUILD=1
+    checkContainer
+    ;;
+  h) # display Help
+    usage
+    exit
+    ;;
+  t) # test a running container
+    BUILD=0
+    checkContainer
+    ;;
+  u) # build ubuntu image with nordvpn client
+    ubuntuBuild
+    exit
+    ;;
+  ?|*)
+    echo "Unknown option"
+    usage
+    exit
+    ;;
+  esac
+done

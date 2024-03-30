@@ -14,13 +14,8 @@ log() {
 #check if eth0 ip has changed, change tinyproxy listen address if needed.
 changeTinyListenAddress
 
-#if protected
-if test "$(curl -m 10 -s https://api.nordvpn.com/vpn/check/full | jq -r '.["status"]')" = "Protected"; then
-  exit 0
-fi
-
+#  status connected.
 status=$(nordvpn status | grep -oP "Status: \K\w+")
-# or connected (api might be offline), all is ok.
 if [ "connected" == ${status,,} ]; then
   exit 0
 fi

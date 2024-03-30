@@ -17,14 +17,14 @@ jobs:
       DRY: false
     steps:
       - name: Delete workflow runs
-        uses: dmvict/clean-workflow-runs@v1.2.1
+        uses: dmvict/clean-workflow-runs@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           save_period: 30
           dry: ${{ env.DRY }}
 
       - name: Delete failed workflow
-        uses: dmvict/clean-workflow-runs@v1.2.1
+        uses: dmvict/clean-workflow-runs@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           run_conclusions: |
