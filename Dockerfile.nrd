@@ -1,0 +1,50 @@
+#FROM debian:bookworm-slim
+#FROM ubuntu:22.04
+FROM debian:bookworm-slim
+ARG VERSION=3.17.3
+ARG TZ=America/Chicago
+
+ENV TZ=${TZ}
+ENV NORDVPN_VERSION=${VERSION}
+ENV DEBIAN_FRONTEND=noninteractive
+ENV GENERATE_WIREGUARD_CONF=false
+ENV ANALYTICS=on
+ENV KILLERSWITCH=on
+ENV CYBER_SEC=off
+ENV TECHNOLOGY=nordlynx
+ENV PROTOCOL=udp
+ENV OBFUSCATE=off
+ENV IPV6=off
+ENV DEBUG=0
+ENV TINYLOGLEVEL=error
+ENV TINYPORT=8888
+ENV DANTE_LOGLEVEL=error
+ENV DANTE_ERRORLOG=/dev/null
+ENV DANTE_DEBUG=0
+ENV GENERATE_WIREGUARD_CONF=false
+ENV TECHNOLOGY=nordlynx
+ENV OBFUSCATE=off
+ENV PROTOCOL=udp
+ENV COUNTRY=argentina
+ENV GROUP=P2P
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+#add apt-cacher setting if present:
+#hadolint ignore=DL3018,DL3008
+RUN apt-get update && apt-get upgrade -y && \
+    apt-get install -y wget iputils-ping curl && \
+    wget -O /tmp/nordrepo.deb https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/nordvpn-release_1.0.0_all.deb && \
+    apt-get install -y /tmp/nordrepo.deb && \
+    apt-get update && \
+    apt-get install -y nordvpn=${VERSION} && \
+    apt-get remove -y wget nordvpn-release && \
+    rm /tmp/nordrepo.deb && \
+    apt-get clean \
+    && echo "alias checkip='curl -sm 10 \"https://zx2c4.com/ip\";echo'" | tee -a ~/.bashrc \
+    && echo "alias checkvpn='nordvpn status | grep -oP \"(?<=Status: ).*\"'" | tee -a ~/.bashrc \
+    && echo "alias dltest='curl http://appliwave.testdebit.info/100M.iso -o /dev/null'" | tee -a ~/.bashrc \
+    && echo "function getversion(){ apt-get update && apt-get install -y --allow-downgrades nordvpn=\${1:-3.16.9} && supervisortctl start start_vpn; }" | tee -a ~/.bashrc \
+    && echo "function showversion(){ apt-cache show nordvpn |grep -oP '(?<=Version: ).+' | sort | awk 'NR==1 {first = \$0} END {print first\" - \"\$0; }'; }" | tee -a ~/.bashrc
+
+ENTRYPOINT /etc/init.d/nordvpn start && tail -F /var/log/nordvpn/daemon.log
+CMD bash

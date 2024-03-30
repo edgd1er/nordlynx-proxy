@@ -10,15 +10,16 @@ services:
       - /dev/net/tun
     sysctls:
       - net.ipv6.conf.all.disable_ipv6=1 # disable ipv6
+    privileged: true # required >= 3.17.0
     cap_add:
       - NET_ADMIN               # Required
     environment:
       - TZ=America/Chicago
-      - LOCAL_NETWORK=192.168.0.0/24
+      - #- NORDVPN_VERSION=3.16.9 #install required version of nordvpn's client. Downgrade allowed.
+      - GROUP=P2P #default P2P, Africa_The_Middle_East_And_India, Asia_Pacific, Europe, Onion_Over_VPN, P2P, Standard_VPN_Servers, The_Americas
       - ANALYTICS=off # or on, sending anonymous aggregate data: crash reports, OS version, marketing performance, and feature usage data
         #- CONNECT= #Optionnal, override COUNTRY, specify country+serveur number like uk715
       - COUNTRY=de # optional, default argentina.
-      - GROUP=P2P #default P2P, Africa_The_Middle_East_And_India, Asia_Pacific, Europe, Onion_Over_VPN, P2P, Standard_VPN_Servers, The_Americas
         #- KILLERSWITCH=on #Optional, on by default, kill Switch is a feature helping you prevent unprotected access to the internet when your traffic doesn't go through a NordVPN server.
         #- CYBER_SEC=off #CyberSec is a feature protecting you from ads, unsafe connections, and malicious sites
       - TECHNOLOGY=NordLynx #openvpn or nordlynx (default)
@@ -27,7 +28,7 @@ services:
         #- NORDVPN_LOGIN=<email> #Not required if using secrets
         #- NORDVPN_PASS=<pass> #Not required if using secrets
         #- DEBUG=0 #(0/1) activate debug mode for scripts, dante, tinproxy
-        #- LOCAL_NETWORK=192.168.53.0/24 #LAN to route through proxies and vpn.
+        #- LOCAL_NETWORK=192.168.0.0/24 #LAN to route through proxies and vpn.
         #- TINYLOGLEVEL=error #Optional, default error: Critical (least verbose), Error, Warning, Notice, Connect (to log connections without Info's noise), Info
         #- TINYPORT=8888 #define tinyport inside the container, optional, 8888 by default,
         #- DANTE_LOGLEVEL="error" #Optional, error by default, available values: connect disconnect error data
