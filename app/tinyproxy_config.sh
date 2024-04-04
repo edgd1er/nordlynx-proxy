@@ -38,3 +38,6 @@ fi
 
 #show Conf
 [[ 1 -eq ${DEBUG} ]] && grep -vE "(^#|^$)" ${CONF} || true
+
+#basic Auth
+[[ -n ${TINYUSER}  ]] && [[ -n ${TINYPASS}  ]] && sed -i -r "s/#?BasicAuth user password/BasicAuth ${TINYUSER} ${TINYPASS}/" ${CONF} || true
