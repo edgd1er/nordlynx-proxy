@@ -29,6 +29,8 @@ services:
         #- NORDVPN_PASS=<pass> #Not required if using secrets
         #- DEBUG=0 #(0/1) activate debug mode for scripts, dante, tinproxy
         #- LOCAL_NETWORK=192.168.0.0/24 #LAN to route through proxies and vpn.
+        #- TINYUSER: optional, enforces authentication over tinyproxy when set with TINYPASS.
+        #- TINYPASS: optional, enforces authentication over tinyproxy when set with TINYUSER.
         #- TINYLOGLEVEL=error #Optional, default error: Critical (least verbose), Error, Warning, Notice, Connect (to log connections without Info's noise), Info
         #- TINYPORT=8888 #define tinyport inside the container, optional, 8888 by default,
         #- DANTE_LOGLEVEL="error" #Optional, error by default, available values: connect disconnect error data
