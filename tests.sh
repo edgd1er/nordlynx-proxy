@@ -135,7 +135,7 @@ checkContainer() {
 }
 
 ubuntuBuild() {
-  docker buildx build -f Dockerfile.nrd --build-arg VERSION=3.17.3 -t nordvpnu  .
+  docker buildx build -f Dockerfile.nrd --build-arg VERSION=3.17.4 -t nordvpnu  .
   TKN=$(<nordvpn_creds)
   echo "nordvpn login -token ${TKN}"
   #docker run -it --rm nordvpnu "nordvpn login -token ${TKN}; bash"
