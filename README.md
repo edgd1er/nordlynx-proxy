@@ -101,8 +101,10 @@ Might be needed, if NordVPN cannot change the settings itself.
 * PORTS: add ports to allow
 * LOCAL_NETWORK: add subnet to allow, multiple values possible net1, net2, net3, ....
 * DOCKER_NET: optional, docker CIDR extracted from container ip if not set. 
+* TINYUSER: optional, enforces authentication over tinyproxy when set with TINYPASS. 
+* TINYPASS: optional, enforces authentication over tinyproxy when set with TINYUSER. 
 
-### Authentication
+### NordVPN Authentication
 As of 23-12-2022, login with username and password are deprecated, as well as legacy. Username and password logins are allowed in the container, but may not be allowed by NordVPN. Login with a token is highly recommended. Tokens can be generated in your [NordAccount](https://my.nordaccount.com/dashboard/nordvpn).
 
 ### docker-compose example with env variables explained
