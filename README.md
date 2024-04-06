@@ -135,6 +135,8 @@ services:
       #- NORDVPN_PASS=<pass> #Not required if using secrets or token in above `NORDVPN_LOGIN=token`
       #- DEBUG=0 #(0/1) activate debug mode for scripts, dante, tinyproxy
       - LOCAL_NETWORK=192.168.1.0/24 #LAN subnet to route through proxies and vpn.
+      #- TINYUSER: optional, enforces authentication over tinyproxy when set with TINYPASS.
+      #- TINYPASS: optional, enforces authentication over tinyproxy when set with TINYUSER.
       #- TINYLOGLEVEL=error #Optional, default error: Critical (least verbose), Error, Warning, Notice, Connect (to log connections without info's noise), Info
       #- TINYPORT=8888 #define tinyport inside the container, optional, 8888 by default,
       #- DANTE_LOGLEVEL="error" #Optional, error by default, available values: connect disconnect error data
@@ -143,11 +145,22 @@ services:
       #- GENERATE_WIREGUARD_CONF=true #write /etc/wireguard/wg0.conf if true
     secrets:
       - NORDVPN_CREDS
+      - TINY_CREDS
 
 secrets:
     NORDVPN_CREDS:
         file: ./nordvpn_creds #file with username/token in 1st line, passwd in 2nd line.
+    TINY_CREDS:
+        file: ./tiny_creds #file with username/password in 1st line, passwd in 2nd line.
 ```
+
+### Secrets
+
+Nordvpn and tinyproxy credentials may be available throught secrets (/run/secrets/nordvpn_creds, /run/secrets/tiny_creds)
+In the setup scripts, secrets values override any env values. Secrets names are fixed values: NORDVPN_CREDS, TINY_CREDS.
+
+file: ./nordvpn_creds #file with username/token in 1st line, passwd in 2nd line.
+file: ./tiny_creds #file with username/password in 1st line, passwd in 2nd line.
 
 ### Troubleshoot
 Enter the container: `docker compose exec lynx bash`

@@ -74,15 +74,18 @@ testProxies() {
     passtiny=$(tail -1 ./tiny_creds)
     echo "Getting tinyCreds from file: ${usertiny}:${passtiny}"
     TCREDS="${usertiny}:${passtiny}@"
+    DCREDS="danteuser:${passtiny}@"
   else
     usertiny=$(grep -oP "(?<=- TINYUSER=)[^ ]+" docker-compose.yml)
     passtiny=$(grep -oP "(?<=- TINYPASS=)[^ ]+" docker-compose.yml)
     echo "Getting tinyCreds from compose: ${usertiny}:${passtiny}"
     TCREDS="${usertiny}:${passtiny}@"
+    DCREDS="danteuser:${passtiny}@"
   fi
   if [[ -z ${usertiny:-''} ]]; then
     echo "No tinyCreds"
     TCREDS=""
+    DCREDS=""
   fi
   vpnIP=$(curl -m5 -sx http://${TCREDS}${PROXY_HOST}:${HTTP_PORT} "https://ifconfig.me/ip") || true
   if [[ $? -eq 0 ]] && [[ ${myIp} != "${vpnIP}" ]] && [[ ${#vpnIP} -gt 0 ]]; then
@@ -94,7 +97,7 @@ testProxies() {
   fi
 
   #check detected ips
-  vpnIP=$(curl -m5 -sx socks5://${TCREDS}${PROXY_HOST}:${SOCK_PORT} "https://ifconfig.me/ip") || true
+  vpnIP=$(curl -m5 -sx socks5://${DCREDS}${PROXY_HOST}:${SOCK_PORT} "https://ifconfig.me/ip") || true
   if [[ $? -eq 0 ]] && [[ ${myIp} != "${vpnIP}" ]] && [[ ${#vpnIP} -gt 0 ]]; then
     echo "socks proxy: IP is ${vpnIP}, mine is ${myIp}"
   else

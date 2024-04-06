@@ -36,8 +36,19 @@ else
   sed -i "s!#Allow 192!Allow 192!" ${CONF}
 fi
 
+#basic Auth
+TCREDS_SECRET_FILE=/run/secrets/TINY_CREDS
+if [[ -f ${TCREDS_SECRET_FILE} ]]; then
+  TINYUSER=$(head -1 ${TCREDS_SECRET_FILE})
+  TINYPASS=$(tail -1 ${TCREDS_SECRET_FILE})
+fi
+if [[ -n ${TINYUSER:-''} ]] && [[ -n ${TINYPASS:-''} ]]; then
+  sed -i -r "s/#?BasicAuth user password/BasicAuth ${TINYUSER} ${TINYPASS}/" ${CONF}
+  sed -i -r "s/^upstream socks5.*/upstream socks5 danteuser:${TINYPASS}@localhost:1080/g" ${CONF}
+else
+  sed -i -r "s/^BasicAuth .*/#BasicAuthuser passwordS/" ${CONF}
+  sed -i -r "s/^upstream socks5.*/upstream socks5 localhost:1080/g" ${CONF}
+fi
+
 #show Conf
 [[ 1 -eq ${DEBUG} ]] && grep -vE "(^#|^$)" ${CONF} || true
-
-#basic Auth
-[[ -n ${TINYUSER}  ]] && [[ -n ${TINYPASS}  ]] && sed -i -r "s/#?BasicAuth user password/BasicAuth ${TINYUSER} ${TINYPASS}/" ${CONF} || true
