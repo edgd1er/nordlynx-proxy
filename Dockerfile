@@ -1,6 +1,6 @@
 FROM debian:bookworm-slim
 ARG aptcacher
-ARG VERSION=3.18.1
+ARG VERSION=3.18.2
 ARG TZ=America/Chicago
 ARG WG=false
 
@@ -15,7 +15,7 @@ LABEL maintainer="edgd1er <edgd1er@htomail.com>" \
       org.label-schema.schema-version="1.0"
 
 ENV TZ=${TZ}
-ENV NORDVPN_VERSION=3.18.1
+ENV NORDVPN_VERSION=3.18.2
 ENV DEBIAN_FRONTEND=noninteractive
 ENV GENERATE_WIREGUARD_CONF=false
 ENV ANALYTICS=on
@@ -65,13 +65,13 @@ RUN if [[ -n "${aptcacher}" ]]; then echo "Acquire::http::Proxy \"http://${aptca
     && addgroup --system vpn && useradd -lNms /usr/bin/bash -u "${NUID:-1000}" -G nordvpn,vpn nordclient \
     && useradd -r -s /bin/false danteuser && echo "danteuser:None" | chpasswd \
     && echo "alias checkip='curl -sm 10 \"https://zx2c4.com/ip\";echo'" | tee -a ~/.bashrc \
-    && echo "alias checkhttp='TCF=/run/secrets/TINY_CREDS; [[ -f \${TCF} ]] && TCREDS=\"\$(head -1 \${TCF})\":\"\$(tail -1 \${TCF})\"@\" || TCREDS=\"\";curl -sm 10 -x http://\${TREDS}\${HOSTNAME}:\${WEBPROXY_PORT:-8888} \"https://ifconfig.me/ip\";echo'" | tee -a ~/.bashrc \
-    && echo "alias checksocks='TCF=/run/secrets/TINY_CREDS; [[ -f \${TCF} ]] && TCREDS=\"danteuser:\"\$(tail -1 \${TCF})\"@\" || TCREDS=\"\";curl -sm10 -x socks5://\${TCREDS}\${HOSTNAME}:1080 \"https://ifconfig.me/ip\";echo'" | tee -a ~/.bashrc \
+    && echo "alias checkhttp='TCF=/run/secrets/TINY_CREDS; [[ -f \${TCF} ]] && TCREDS=\"\$(head -1 \${TCF}):\$(tail -1 \${TCF})@\" || TCREDS=\"\";curl -4 -sm 10 -x http://\${TCREDS}\${HOSTNAME}:\${WEBPROXY_PORT:-8888} \"https://ifconfig.me/ip\";echo'" | tee -a ~/.bashrc \
+    && echo "alias checksocks='TCF=/run/secrets/TINY_CREDS; [[ -f \${TCF} ]] && TCREDS=\"danteuser:\"\$(tail -1 \${TCF})\"@\" || TCREDS=\"\";curl -4 -sm10 -x socks5h://\${TCREDS}\${HOSTNAME}:1080 \"https://ifconfig.me/ip\";echo'" | tee -a ~/.bashrc \
     && echo "alias checkvpn='nordvpn status | grep -oP \"(?<=Status: ).*\"'" | tee -a ~/.bashrc \
     && echo "alias gettiny='grep -vP \"(^$|^#)\" /etc/tinyproxy/tinyproxy.conf'" | tee -a ~/.bashrc \
     && echo "alias getdante='grep -vP \"(^$|^#)\" /etc/sockd.conf'" | tee -a ~/.bashrc \
     && echo "alias dltest='curl http://appliwave.testdebit.info/100M.iso -o /dev/null'" | tee -a ~/.bashrc \
-    && echo "function getversion(){ apt-get update && apt-get install -y --allow-downgrades nordvpn=\${1:-3.16.9} && supervisortctl start start_vpn; }" | tee -a ~/.bashrc \
+    && echo "function getversion(){ apt-get update && apt-get install -y --allow-downgrades nordvpn=\${1:-3.16.9} && supervisorctl start start_vpn; }" | tee -a ~/.bashrc \
     && echo "function showversion(){ apt-cache show nordvpn |grep -oP '(?<=Version: ).+' | sort | awk 'NR==1 {first = \$0} END {print first\" - \"\$0; }'; }" | tee -a ~/.bashrc \
     && apt-get clean all && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
     && if [[ -n "${aptcacher}" ]]; then rm /etc/apt/apt.conf.d/01proxy; fi;

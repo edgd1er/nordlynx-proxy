@@ -40,7 +40,6 @@ buildAndWait() {
   echo "Waiting for the container to be up.(every ${INTERVAL} sec)"
   logs=""
   n=0
-  #  while [ 0 -eq $(echo $logs | grep -c "Initialization Sequence Completed") ]; do
   while [ 0 -eq $(echo $logs | grep -c "exited: start_vpn (exit status 0; expected") ]; do
     logs="$(docker compose logs)"
     sleep ${INTERVAL}
@@ -97,7 +96,7 @@ testProxies() {
   fi
 
   #check detected ips
-  vpnIP=$(curl -m5 -sx socks5://${DCREDS}${PROXY_HOST}:${SOCK_PORT} "https://ifconfig.me/ip") || true
+  vpnIP=$(curl -m5 -sx socks5h://${DCREDS}${PROXY_HOST}:${SOCK_PORT} "https://ifconfig.me/ip") || true
   if [[ $? -eq 0 ]] && [[ ${myIp} != "${vpnIP}" ]] && [[ ${#vpnIP} -gt 0 ]]; then
     echo "socks proxy: IP is ${vpnIP}, mine is ${myIp}"
   else
@@ -138,7 +137,7 @@ checkContainer() {
 }
 
 ubuntuBuild() {
-  docker buildx build -f Dockerfile.nrd --build-arg VERSION=3.17.4 -t nordvpnu  .
+  docker buildx build -f Dockerfile.nrd --build-arg VERSION=3.17.4 -t nordvpnu .
   TKN=$(<nordvpn_creds)
   echo "nordvpn login -token ${TKN}"
   #docker run -it --rm nordvpnu "nordvpn login -token ${TKN}; bash"
@@ -146,7 +145,7 @@ ubuntuBuild() {
   docker exec -t nordvpnu "nordvpn login -token ${TKN}; nordvpn c -group p2p germany berlin;"
 }
 
-usage(){
+usage() {
   echo "$0: build and test container"
   echo -e "\t-b\tBuild and test"
   echo -e "\t-t\tTest a running container"
@@ -156,7 +155,7 @@ usage(){
 
 #Main
 [[ -e /.dockerenv ]] && PROXY_HOST=
-myIp=$(curl -m5 -sq https://ifconfig.me/ip)
+myIp=$(curl -4 -m5 -sq https://ifconfig.me/ip)
 
 # Get the options
 while getopts ":bhtu" option; do
@@ -177,10 +176,14 @@ while getopts ":bhtu" option; do
     ubuntuBuild
     exit
     ;;
-  ?|*)
+  ? | *)
     echo "Unknown option"
     usage
     exit
     ;;
   esac
 done
+
+if [ $# -eq 0 ]; then
+  usage
+fi
