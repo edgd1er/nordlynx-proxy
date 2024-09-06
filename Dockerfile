@@ -1,6 +1,6 @@
 FROM debian:bookworm-slim
 ARG aptcacher=""
-ARG VERSION=3.18.4
+ARG VERSION=3.18.5
 ARG TZ=America/Chicago
 ARG WG=false
 
@@ -15,7 +15,7 @@ LABEL maintainer="edgd1er <edgd1er@htomail.com>" \
       org.label-schema.schema-version="1.0"
 
 ENV TZ=${TZ}
-ENV NORDVPN_VERSION=3.18.4
+ENV NORDVPN_VERSION=3.18.5
 ENV DEBIAN_FRONTEND=noninteractive
 ENV GENERATE_WIREGUARD_CONF=false
 ENV ANALYTICS=on
