@@ -144,8 +144,8 @@ services:
       #- DANTE_DEBUG=0 # Optional, 0-9
       #- GENERATE_WIREGUARD_CONF=true #write /etc/wireguard/wg0.conf if true
     secrets:
-      - NORDVPN_CREDS
-      - TINY_CREDS
+      - NORDVPN_CREDS # token, 1 line only
+      - TINY_CREDS # username on line 1, password on line 2
 
 secrets:
     NORDVPN_CREDS:

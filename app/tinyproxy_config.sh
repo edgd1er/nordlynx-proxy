@@ -18,7 +18,7 @@ INT_CIDR=$(getEthCidr)
 log "INFO: TINYPROXY: set configuration INT_IP: ${INT_IP}/ EXT_IP: ${EXT_IP}"
 sed "s/TINYPORT/${TINYPORT}/" ${SOURCE_CONF} >${CONF}
 sed -i "s/TINYLOGLEVEL/${TINYLOGLEVEL}/" ${CONF}
-sed -i -r "s/#?Listen/Listen ${INT_IP}/" ${CONF}
+sed -i -r "s/^#?Listen/Listen ${INT_IP}/" ${CONF}
 
 sed -i "s!#Allow INT_CIDR!Allow ${INT_CIDR}!" ${CONF}
 #Allow only local network
@@ -43,11 +43,11 @@ if [[ -f ${TCREDS_SECRET_FILE} ]]; then
   TINYPASS=$(tail -1 ${TCREDS_SECRET_FILE})
 fi
 if [[ -n ${TINYUSER:-''} ]] && [[ -n ${TINYPASS:-''} ]]; then
-  sed -i -r "s/#?BasicAuth user password/BasicAuth ${TINYUSER} ${TINYPASS}/" ${CONF}
-  sed -i -r "s/^upstream socks5.*/upstream socks5 danteuser:${TINYPASS}@localhost:1080/g" ${CONF}
+  sed -i -r "s/^#?BasicAuth user password/BasicAuth ${TINYUSER} ${TINYPASS}/" ${CONF}
+  sed -i -r "s/^#?upstream socks5.*/upstream socks5 ${TINYUSER}:${TINYPASS}@localhost:1080/g" ${CONF}
 else
-  sed -i -r "s/^BasicAuth .*/#BasicAuthuser passwordS/" ${CONF}
-  sed -i -r "s/^upstream socks5.*/upstream socks5 localhost:1080/g" ${CONF}
+  sed -i -r "s/^BasicAuth .*/#BasicAuthuser password/" ${CONF}
+  sed -i -r "s/^#?upstream socks5.*/upstream socks5 localhost:1080/g" ${CONF}
 fi
 
 #show Conf

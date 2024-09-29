@@ -139,7 +139,13 @@ changeTinyListenAddress() {
 
 ## tests functions
 testhproxy() {
-  IP=$(curl -m5 -sqx http://${PROXY_HOST}:${HTTP_PORT} "https://ifconfig.me/ip")
+      TCF=/run/secrets/TINY_CREDS
+    if [[ -f ${TCF} ]]; then
+        TCREDS="$(head -1 ${TCF}):$(tail -1 ${TCF})@"
+    else
+        TCREDS=""
+    fi
+  IP=$(curl -m5 -sqx http://${TCREDS}${PROXY_HOST}:${HTTP_PORT} "https://ifconfig.me/ip")
   if [[ $? -eq 0 ]]; then
     echo "IP is ${IP}"
   else
@@ -149,7 +155,13 @@ testhproxy() {
 }
 
 testsproxy() {
-  IP=$(curl -m5 -sqx socks5://${PROXY_HOST}:${SOCK_PORT} "https://ifconfig.me/ip")
+    TCF=/run/secrets/TINY_CREDS
+    if [[ -f ${TCF} ]]; then
+        TCREDS="$(head -1 ${TCF}):$(tail -1 ${TCF})@"
+    else
+        TCREDS=""
+    fi
+  IP=$(curl -m5 -sqx socks5://${TCREDS}${PROXY_HOST}:${SOCK_PORT} "https://ifconfig.me/ip")
   if [[ $? -eq 0 ]]; then
     echo "IP is ${IP}"
   else

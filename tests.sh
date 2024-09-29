@@ -73,13 +73,13 @@ testProxies() {
     passtiny=$(tail -1 ./tiny_creds)
     echo "Getting tinyCreds from file: ${usertiny}:${passtiny}"
     TCREDS="${usertiny}:${passtiny}@"
-    DCREDS="danteuser:${passtiny}@"
+    DCREDS="${TCREDS}"
   else
     usertiny=$(grep -oP "(?<=- TINYUSER=)[^ ]+" docker-compose.yml)
     passtiny=$(grep -oP "(?<=- TINYPASS=)[^ ]+" docker-compose.yml)
     echo "Getting tinyCreds from compose: ${usertiny}:${passtiny}"
     TCREDS="${usertiny}:${passtiny}@"
-    DCREDS="danteuser:${passtiny}@"
+    DCREDS="${TCREDS}"
   fi
   if [[ -z ${usertiny:-''} ]]; then
     echo "No tinyCreds"

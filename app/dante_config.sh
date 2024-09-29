@@ -16,7 +16,6 @@ log "INFO: DANTE: INTERFACE: ${INTERFACE}, error log: ${DANTE_ERRORLOG}, log lev
 sed "s/INTERFACE/${INTERFACE}/" ${SOURCE_DANTE_CONF} >${DANTE_CONF}
 sed -i "s/DANTE_DEBUG/${DANTE_DEBUG}/" ${DANTE_CONF}
 sed -i "s/#clientmethod: none/clientmethod: none/" ${DANTE_CONF}
-sed -i "s/#socksmethod: none/socksmethod: none/" ${DANTE_CONF}
 
 #basic Auth
 TCREDS_SECRET_FILE=/run/secrets/TINY_CREDS
@@ -25,10 +24,11 @@ if [[ -f ${TCREDS_SECRET_FILE} ]]; then
   TINYPASS=$(tail -1 ${TCREDS_SECRET_FILE})
 fi
 if [[ -n ${TINYUSER:-''} ]] && [[ -n ${TINYPASS:-''} ]]; then
+  [[ 0 -eq $(grep -c ${TINYUSER} /etc/passwd) ]] && adduser --gecos "" --no-create-home --disabled-password --disabled-login ${TINYUSER} || true
+  echo "${TINYUSER}:${TINYPASS}" | chpasswd
   sed -i -r "s/#?socksmethod: .*/socksmethod: username/" ${DANTE_CONF}
-  echo "danteuser:${TINYPASS}" | chpasswd
 else
-  sed -i -r "s/socksmethod: .*/socksmethod: none/" ${DANTE_CONF}
+  sed -i -r "s/#?socksmethod: .*/socksmethod: none/" ${DANTE_CONF}
 fi
 
 #Allow from private addresses from clients
