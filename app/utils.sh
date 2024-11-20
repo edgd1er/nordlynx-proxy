@@ -137,6 +137,14 @@ changeTinyListenAddress() {
   fi
 }
 
+createUserForAuthifNeeded(){
+    TINYUSER=${1:-'NotAUser'}
+    tinyid=$(id -u ${TINYUSER}) || true
+    if [[ -z ${tinyid} ]]; then
+      adduser -gecos "" --no-create-home --disabled-password --shell /sbin/nologin  --ingroup tinyproxy ${TINYUSER}
+    fi
+}
+
 ## tests functions
 testhproxy() {
       TCF=/run/secrets/TINY_CREDS

@@ -218,3 +218,4 @@ supervisorctl start dante
 sleep 2
 log "INFO: TINYPROXY: starting"
 supervisorctl start tinyproxy
+log "INFO: END: container started."

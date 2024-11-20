@@ -24,7 +24,7 @@ if [[ -f ${TCREDS_SECRET_FILE} ]]; then
   TINYPASS=$(tail -1 ${TCREDS_SECRET_FILE})
 fi
 if [[ -n ${TINYUSER:-''} ]] && [[ -n ${TINYPASS:-''} ]]; then
-  [[ 0 -eq $(grep -c ${TINYUSER} /etc/passwd) ]] && adduser --gecos "" --no-create-home --disabled-password --disabled-login ${TINYUSER} || true
+  createUserForAuthifNeeded ${TINYUSER}
   echo "${TINYUSER}:${TINYPASS}" | chpasswd
   sed -i -r "s/#?socksmethod: .*/socksmethod: username/" ${DANTE_CONF}
 else

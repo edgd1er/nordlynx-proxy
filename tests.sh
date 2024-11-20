@@ -18,7 +18,7 @@ runandWait() {
   echo "Stopping and removing running containers"
   docker compose down -v
   echo "Building and starting image"
-  docker compose -f docker-compose.yml up -d
+  docker compose -f compose.yml up -d
   echo "Waiting for the container to be up.(every ${INTERVAL} sec)"
   logs=""
   while [ 0 -eq $(echo $logs | grep -c "tinyproxy: started") ]; do
@@ -36,7 +36,7 @@ buildAndWait() {
   echo "Stopping and removing running containers"
   docker compose down -v
   echo "Building and starting image"
-  docker compose -f docker-compose.yml up -d --build
+  docker compose -f compose.yml up -d --build
   echo "Waiting for the container to be up.(every ${INTERVAL} sec)"
   logs=""
   n=0
@@ -75,8 +75,8 @@ testProxies() {
     TCREDS="${usertiny}:${passtiny}@"
     DCREDS="${TCREDS}"
   else
-    usertiny=$(grep -oP "(?<=- TINYUSER=)[^ ]+" docker-compose.yml)
-    passtiny=$(grep -oP "(?<=- TINYPASS=)[^ ]+" docker-compose.yml)
+    usertiny=$(grep -oP "(?<=- TINYUSER=)[^ ]+" compose.yml)
+    passtiny=$(grep -oP "(?<=- TINYPASS=)[^ ]+" compose.yml)
     echo "Getting tinyCreds from compose: ${usertiny}:${passtiny}"
     TCREDS="${usertiny}:${passtiny}@"
     DCREDS="${TCREDS}"

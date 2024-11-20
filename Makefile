@@ -31,9 +31,9 @@ check: ## check Version
 	NV=$$(curl -Ls "${NORDVPN_PACKAGE}" | grep -oP "(?<=Version: )(.*)" | sort -t. -n -k1,1 -k2,2 -k3,3 | tail -1) ;\
 	echo "remote version: $${NV}" ;\
 	echo "NEWVERSION: $${NV}" ; \
-	sed -i -E "s/VERSION:.*/VERSION: $${NV}/" docker-compose.yml ; \
+	sed -i -E "s/VERSION:.*/VERSION: $${NV}/" compose.yml ; \
 	sed -i -E "s/VERSION=.*/VERSION=$${NV}/" Dockerfile ; \
-	grep -HE 'VERSION[:=].+' Dockerfile docker-compose.yml ; \
+	grep -HE 'VERSION[:=].+' Dockerfile compose.yml ; \
 	sed -i "s/$$LV/$$NV/g" README.md ; \
 	grep -HoPm1 'nordvpn_[^(]+' README.md
 
