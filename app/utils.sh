@@ -145,14 +145,23 @@ createUserForAuthifNeeded(){
     fi
 }
 
+getTinyCred(){
+  TCREDS_SECRET_FILE=/run/secrets/TINY_CREDS
+  if [[ -f ${TCREDS_SECRET_FILE} ]]; then
+    TINYUSER=$(head -1 ${TCREDS_SECRET_FILE})
+    TINYPASS=$(tail -1 ${TCREDS_SECRET_FILE})
+  fi
+  if [[ -n ${TINYUSER:-''} ]] && [[ -n ${TINYPASS:-''} ]]; then
+    TINYCRED="${TINYUSER}:${TINYPASS}@"
+  else
+    TINYCRED=""
+  fi
+  return ${TINYCRED}
+}
+
 ## tests functions
 testhproxy() {
-      TCF=/run/secrets/TINY_CREDS
-    if [[ -f ${TCF} ]]; then
-        TCREDS="$(head -1 ${TCF}):$(tail -1 ${TCF})@"
-    else
-        TCREDS=""
-    fi
+  TCREDS=$(getTinyCred)
   IP=$(curl -m5 -sqx http://${TCREDS}${PROXY_HOST}:${HTTP_PORT} "https://ifconfig.me/ip")
   if [[ $? -eq 0 ]]; then
     echo "IP is ${IP}"
@@ -163,12 +172,7 @@ testhproxy() {
 }
 
 testsproxy() {
-    TCF=/run/secrets/TINY_CREDS
-    if [[ -f ${TCF} ]]; then
-        TCREDS="$(head -1 ${TCF}):$(tail -1 ${TCF})@"
-    else
-        TCREDS=""
-    fi
+  TCREDS=$(getTinyCred)
   IP=$(curl -m5 -sqx socks5://${TCREDS}${PROXY_HOST}:${SOCK_PORT} "https://ifconfig.me/ip")
   if [[ $? -eq 0 ]]; then
     echo "IP is ${IP}"
