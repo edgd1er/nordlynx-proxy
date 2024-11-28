@@ -15,7 +15,7 @@
 # nordlynx-proxy
 
 [NordVPN client's version](https://nordvpn.com/fr/blog/nordvpn-linux-release-notes/) or [changelog](
-https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/nordvpn_3.19.1_amd64.changelog): 3.19.1 (18-11-2024)
+https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/nordvpn_3.19.2_amd64.changelog): 3.19.2 (28-11-2024)
 
 As of 2024/11/18, nordvpn reorganiszed its repository and removed pre 3.17.0 versions. privileged mode is now required for the container.
 Image with nordvpn's client >3.17.0 require privileged Mode. Pre 3.17 versions are running without root privileges at container level. Set env var NORDVPN_VERSION to 3.16.9 for instance, to force a nordvpn package downgrade during setup process. Running privileged container is a risk.

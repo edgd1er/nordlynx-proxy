@@ -1,6 +1,6 @@
 FROM debian:bookworm-slim
 ARG aptcacher=""
-ARG VERSION=3.19.1
+ARG VERSION=3.19.2
 ARG TZ=America/Chicago
 ARG WG=false
 
@@ -15,7 +15,7 @@ LABEL maintainer="edgd1er <edgd1er@htomail.com>" \
       org.label-schema.schema-version="1.0"
 
 ENV TZ=${TZ}
-ENV NORDVPN_VERSION=3.19.1
+ENV NORDVPN_VERSION=3.19.2
 ENV DEBIAN_FRONTEND=noninteractive
 ENV GENERATE_WIREGUARD_CONF=false
 ENV ANALYTICS=on
@@ -55,7 +55,7 @@ RUN if [[ -n "${aptcacher}" ]]; then echo "Acquire::http::Proxy \"http://${aptca
     #check conf template with package conf
     && diff /etc/tinyproxy/tinyproxy.conf /etc/tinyproxy.conf.tmpl || true \
     && diff /etc/dante/danted.conf /etc/danted.conf.tmpl || true \
-    #wireguard
+    # wireguard
     && if [[ ${WG} != false ]]; then apt-get -o Dpkg::Options::="--force-confold" install -y --no-install-recommends wireguard wireguard-tools; fi \
     && wget -nv -t10 -O /tmp/nordrepo.deb  "https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/n/nordvpn-release/nordvpn-release_1.0.0_all.deb" \
     && apt-get install -qqy --no-install-recommends -f /tmp/nordrepo.deb && apt-get update \
