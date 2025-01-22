@@ -99,7 +99,8 @@ extractLynxConf() {
 
 #Main
 #Overwrite docker dns as it may fail with specific configuration (dns on server/container crash)
-#echo -e "nameserver 1.1.1.1\noptions timeout: 1 attempts:1 ndots:0" >/etc/resolv.conf
+chattr -i /etc/resolv.conf
+echo -e "nameserver 1.1.1.1\noptions timeout: 1 attempts:1 ndots:0" >/etc/resolv.conf
 setTimeZone
 
 #check if installed nordvpn app is the latest available
