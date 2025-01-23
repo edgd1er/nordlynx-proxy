@@ -111,7 +111,7 @@ getEthIp() {
 }
 
 getEthCidr() {
-  ip -j a show eth0 | jq -r '.[].addr_info[0]|"\( .broadcast)/\(.prefixlen)"' | sed 's/255/0/g'
+  ip -j a show eth0 | jq -r '.[].addr_info[0]|"\( .broadcast // .local)/\(.prefixlen)"' | sed 's/255/0/g'
 }
 
 getTinyConf() {
