@@ -27,9 +27,10 @@ ENV OBFUSCATE=off
 ENV IPV6=off
 ENV DEBUG=0
 ENV TINYLOGLEVEL=error
+ENV TINYLOGOUTPUT=stdout
 ENV TINYPORT=8888
 ENV DANTE_LOGLEVEL=error
-ENV DANTE_ERRORLOG=/dev/null
+ENV DANTE_LOGOUTPUT=/dev/null
 ENV DANTE_DEBUG=0
 ENV GENERATE_WIREGUARD_CONF=false
 ENV TECHNOLOGY=nordlynx
@@ -77,6 +78,7 @@ RUN if [[ -n "${aptcacher}" ]]; then echo "Acquire::http::Proxy \"http://${aptca
 
 HEALTHCHECK --interval=5m --timeout=20s --start-period=1m CMD /app/healthcheck.sh
 WORKDIR /app
+VOLUME /var/log/
 
 # Start supervisord as init system
 CMD ["/usr/bin/supervisord", "-n", "-c", "/etc/supervisor/supervisord.conf"]

@@ -1,50 +1,54 @@
 #!/usr/bin/env bash
 
-set -euop pipefail
+set -uop pipefail
 
 #var
+CPSE=compose.yml
 PROXY_HOST="localhost"
-#PROXY_HOST="omv.mission.lan"
-#PROXY_HOST="holdom3.mission.lan"
-HTTP_PORT=9888
-SOCK_PORT=2081
 FAILED=0
 INTERVAL=4
 BUILD=0
 CONTAINER=lynx
+TINYLOG=/var/log/tinyproxy/tinyproxy.log
+DANTELOG=/var/log/dante.log
+HTTP_PORT=98$(grep -oP '(?<=\- "98)[^:]+' ${CPSE})
+SOCK_PORT=20$(grep -oP '(?<=\- "20)[^:]+' ${CPSE})
+PROXY_HOST="localhost"
+SERVICE=$(grep -A1 -P 'services:' compose.yml | tail -1 | tr -d ':' | tr -d ' ')
 
 #Function
 runandWait() {
   echo "Stopping and removing running containers"
   docker compose down -v
   echo "Building and starting image"
-  docker compose -f compose.yml up -d
+  docker compose -f ${CPSE} up -d
   echo "Waiting for the container to be up.(every ${INTERVAL} sec)"
   logs=""
   while [ 0 -eq $(echo $logs | grep -c "tinyproxy: started") ]; do
-    logs="$(docker compose logs)"
+    logs="$(docker compose -f ${CPSE} logs)"
     sleep ${INTERVAL}
     ((n++))
     echo "loop: ${n}"
     [[ ${n} -eq 15 ]] && break || true
   done
-  docker compose logs
+  docker compose -f ${CPSE} exec lynx rm /var/log/{tinyproxy,dante}.log
+  docker compose -f ${CPSE} logs
 }
 
 #Main
 buildAndWait() {
   echo "Stopping and removing running containers"
-  docker compose down -v
+  docker compose -f ${CPSE} down -v
   echo "Building and starting image"
-  docker compose -f compose.yml up -d --build
+  docker compose -f ${CPSE} up -d --build
   echo "Waiting for the container to be up.(every ${INTERVAL} sec)"
   logs=""
   n=0
   while [ 0 -eq $(echo $logs | grep -c "exited: start_vpn (exit status 0; expected") ]; do
-    logs="$(docker compose logs)"
+    logs="$(docker compose -f ${CPSE} logs)"
     sleep ${INTERVAL}
     ((n += 1))
-    echo "loop: ${n}: $(docker compose logs | tail -1)"
+    echo "loop: ${n}: $(docker compose -f ${CPSE} logs | tail -1)"
     [[ ${n} -eq 15 ]] && break || true
   done
   docker compose logs
@@ -117,24 +121,58 @@ getInterfacesInfo() {
   docker compose exec ${CONTAINER} bash -c 'echo "wg conf: $(wg showconf wg0 2>/dev/null)"'
 }
 
+checkOuput() {
+  TINY_OUT=$(grep -oP '(?<=\- TINYLOGOUTPUT=)[^ ]+' ${CPSE})
+  DANTE_OUT=$(grep -oP '(?<=\- DANTE_LOGOUTPUT=)[^ ]+' ${CPSE})
+  DANTE_RES=$(docker compose -f ${CPSE} exec ${SERVICE} grep -oP "(?<=^logoutput: ).+" /etc/sockd.conf) || true
+  TINY_RES=$(docker compose -f ${CPSE} exec ${SERVICE} grep -oP "(?<=^LogFile )(?:\")[^\"]+" /etc/tinyproxy/tinyproxy.conf | tr -d '"') || true
+  TINY_RES=${TINY_RES:-'no log'}
+  echo -e "\nOut tiny: ${TINY_OUT}, dante: ${DANTE_OUT}"
+  echo "Res tiny: ${TINY_RES}, dante: ${DANTE_RES}"
+  echo "Logs tiny: ${TINYLOG}, dante: ${DANTELOG}"
+  #dantelog check
+  echo "Logs output checks:"
+  if [[ ${DANTE_OUT} =~ file ]]; then
+    if [[ -z $(docker compose -f ${CPSE} exec ${SERVICE} ls ${DANTELOG} 2>/dev/null) ]]; then
+      echo "ERROR, $DANTELOG not found when $DANTE_OUT == file. config found: ${DANTE_RES}"
+    else
+      echo "OK, $DANTELOG found as expected."
+    fi
+  else
+    if [[ -n $(docker compose -f ${CPSE} exec ${SERVICE} ls ${DANTELOG} 2>/dev/null) ]]; then
+      echo "ERROR, $DANTELOG found when $DANTE_OUT == stdout. config found: ${DANTE_RES}"
+    else
+      echo "OK, $DANTELOG not found as expected."
+    fi
+  fi
+  #tinyproxylog check
+  if [[ ${TINY_OUT} =~ file ]]; then
+    if [[ -z $(docker compose -f ${CPSE} exec ${SERVICE} ls ${TINYLOG} 2>/dev/null) ]]; then
+      echo "ERROR, $TINYLOG not found when $TINY_OUT == file. config found: ${TINY_RES}"
+    else
+      echo "OK, $TINYLOG found as expected."
+    fi
+  else
+    if [[ -n $(docker compose -f ${CPSE} exec ${SERVICE} ls ${TINYLOG} 2>/dev/null) ]]; then
+      echo "ERROR, $TINYLOG found when $TINY_OUT == stdout. config found: ${TINY_RES}"
+    else
+      echo "OK, $TINYLOG not found as expected."
+    fi
+  fi
+}
+
 checkContainer() {
   if [[ "localhost" == "${PROXY_HOST}" ]] && [[ 1 -eq ${BUILD} ]]; then
     buildAndWait
-    echo "***************************************************"
-    echo "Testing container"
-    echo "***************************************************"
-    # check returned IP through http and socks proxy
-    testProxies
-    getInterfacesInfo
-    [[ 1 -eq ${BUILD} ]] && docker compose down
-  else
-    echo "***************************************************"
-    echo "Testing container"
-    echo "***************************************************"
-    # check returned IP through http and socks proxy
-    testProxies
-    getInterfacesInfo
   fi
+  echo "***************************************************"
+  echo "Testing container"
+  echo "***************************************************"
+  # check returned IP through http and socks proxy
+  testProxies
+  getInterfacesInfo
+  checkOuput
+  [[ 1 -eq ${BUILD} ]] && docker compose down
 }
 
 ubuntuBuild() {

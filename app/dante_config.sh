@@ -6,16 +6,26 @@ source /app/utils.sh
 SOURCE_DANTE_CONF=/etc/danted.conf.tmpl
 DANTE_CONF=/etc/sockd.conf
 DANTE_DEBUG=${DANTE_DEBUG:-0}
-DANTE_LOGLEVEL=${DANTE_LOGLEVEL:-""}
-DANTE_ERRORLOG=${DANTE_ERRORLOG:-"Error"}
+DANTE_LOGLEVEL=${DANTE_LOGLEVEL:-"error"}
 INTERFACE=$(ifconfig | grep -oE "(nordtun|nordlynx)")
 DANTE_LOGLEVEL=${DANTE_LOGLEVEL//\"/}
-DANTE_ERRORLOG=${DANTE_ERRORLOG//\"/}
+DANTE_LOGOUTPUT=${DANTE_LOGOUTPUT//\"/}
 
-log "INFO: DANTE: INTERFACE: ${INTERFACE}, error log: ${DANTE_ERRORLOG}, log level: ${DANTE_LOGLEVEL}, dante debug: ${DANTE_DEBUG}"
+log "INFO: DANTE: INTERFACE: ${INTERFACE}, error log: ${DANTE_LOGOUTPUT}, log level: ${DANTE_LOGLEVEL}, dante debug: ${DANTE_DEBUG}"
 sed "s/INTERFACE/${INTERFACE}/" ${SOURCE_DANTE_CONF} >${DANTE_CONF}
-sed -i "s/DANTE_DEBUG/${DANTE_DEBUG}/" ${DANTE_CONF}
 sed -i "s/#clientmethod: none/clientmethod: none/" ${DANTE_CONF}
+sed -i "s/DANTE_DEBUG/${DANTE_DEBUG}/" ${DANTE_CONF}
+sed -i "s/log: error/log: ${DANTE_LOGLEVEL}/g" ${DANTE_CONF}
+
+#define logoutput
+if [[ "file" == ${DANTE_LOGOUTPUT} ]]; then
+  echo "Setting dante log to /var/log/dante.log"
+  sed -i -r "s%^#?logoutput: DANTE_LOGOUTPUT%logoutput: /var/log/dante.log%" ${DANTE_CONF}
+else
+  echo "Settting dante log to stdout"
+  sed -i -r "s%^#?logoutput: DANTE_LOGOUTPUT%logoutput: stdout%" ${DANTE_CONF}
+fi
+
 
 #basic Auth
 TCREDS_SECRET_FILE=/run/secrets/TINY_CREDS
@@ -80,6 +90,7 @@ socks pass {
 " >>${DANTE_CONF}
 
 [[ -n ${DANTE_LOGLEVEL} ]] && sed -i "s/log: error/log: ${DANTE_LOGLEVEL}/" ${DANTE_CONF}
-[[ -n ${DANTE_ERRORLOG} ]] && sed -i "s#errorlog: /dev/null#errorlog: ${DANTE_ERRORLOG}#" ${DANTE_CONF}
+#[[ -n ${DANTE_ERRORLOG} ]] && sed -i "s#errorlog: /dev/null#errorlog: ${DANTE_ERRORLOG}#" ${DANTE_CONF}
+
 log "INFO: DANTE: check configuration socks proxy"
 danted -Vf ${DANTE_CONF}

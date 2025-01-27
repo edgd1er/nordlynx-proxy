@@ -138,9 +138,10 @@ services:
       #- TINYUSER: optional, enforces authentication over tinyproxy when set with TINYPASS.
       #- TINYPASS: optional, enforces authentication over tinyproxy when set with TINYUSER.
       #- TINYLOGLEVEL=error #Optional, default error: Critical (least verbose), Error, Warning, Notice, Connect (to log connections without info's noise), Info
+      - TINYLOGOUTPUT=file # Optional, stdout or file.
       #- TINYPORT=8888 #define tinyport inside the container, optional, 8888 by default,
       #- DANTE_LOGLEVEL="error" #Optional, error by default, available values: connect disconnect error data
-      - DANTE_ERRORLOG=/dev/stdout #Optional, /dev/null by default
+      - DANTE_LOGOUTPUT=file #Optional, stdout, null, file (/var/log/dante.log=
       #- DANTE_DEBUG=0 # Optional, 0-9
       #- GENERATE_WIREGUARD_CONF=true #write /etc/wireguard/wg0.conf if true
     secrets:

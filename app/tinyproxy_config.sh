@@ -10,6 +10,7 @@ TINYPORT=${TINYPORT:-8888}
 #Critical (least verbose), Error, Warning, Notice, Connect (to log connections without Info's noise), Info
 TINYLOGLEVEL=${TINYLOGLEVEL:-Error}
 TINYLOGLEVEL=${TINYLOGLEVEL//\"/}
+TINYLOGOUTPUT=${TINYLOGOUTPUT:-stdout}
 EXT_IP=$(getExtIp)
 INT_IP=$(getEthIp)
 INT_CIDR=$(getEthCidr)
@@ -19,6 +20,14 @@ log "INFO: TINYPROXY: set configuration INT_IP: ${INT_IP}/ EXT_IP: ${EXT_IP}"
 sed "s/TINYPORT/${TINYPORT}/" ${SOURCE_CONF} >${CONF}
 sed -i "s/TINYLOGLEVEL/${TINYLOGLEVEL}/" ${CONF}
 sed -i -r "s/^#?Listen/Listen ${INT_IP}/" ${CONF}
+
+if [[ "file" == "${TINYLOGOUTPUT}" ]]; then
+  LOGDIR=/var/log/tinyproxy
+  [[ ! -d ${LOGDIR} ]] &&mkdir -p ${LOGDIR} || true
+  touch ${LOGDIR}/tinyproxy.log
+  chown tinyproxy:tinyproxy ${LOGDIR}/tinyproxy.log
+  sed -i -r "s%^#?LogFile.*%LogFile \"${LOGDIR}/tinyproxy.log\"%" ${CONF}
+fi
 
 sed -i "s!#Allow INT_CIDR!Allow ${INT_CIDR}!" ${CONF}
 #Allow only local network
