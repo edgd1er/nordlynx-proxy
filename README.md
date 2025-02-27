@@ -177,3 +177,9 @@ Several aliases are available:
 * getversion: install nordvpn specific version, allow downgrades eg 3.17.0, 3.17.1, ...
 
 From times to times, nordvpn app is bugged, installing another version (downgrade) may be a workaround.
+
+Sometimes docker won't start the container as the file resolv.conf is locked cannot be modified anymore.
+This problem occurs since nordvpn'client 3.19.
+
+to restart the container, remove i attribute on host container's resolv.conf
+```chattr -i /var/lib/docker/containers/<container-hash>/resolv.conf```
