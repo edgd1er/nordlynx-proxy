@@ -15,7 +15,7 @@
 # nordlynx-proxy
 
 [NordVPN client's version](https://nordvpn.com/fr/blog/nordvpn-linux-release-notes/) or [changelog](
-https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/nordvpn_3.20.0_amd64.changelog): 3.20.0 (22-01-2025)
+https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/nordvpn_3.20.1_amd64.changelog): 3.20.1 (20-03-2025)
 
 As of 2024/11/18, nordvpn reorganiszed its repository and removed pre 3.17.0 versions. privileged mode is now required for the container.
 Image with nordvpn's client >3.17.0 require privileged Mode. Pre 3.17 versions are running without root privileges at container level. Set env var NORDVPN_VERSION to 3.16.9 for instance, to force a nordvpn package downgrade during setup process. Running privileged container is a risk.
@@ -88,7 +88,7 @@ Might be needed, if NordVPN cannot change the settings itself.
 
 ## Environment options
 * ANALYTICS: [off/on], default on, send anonymous aggregate data: crash reports, OS version, marketing performance, and feature usage data
-* TECHNOLOGY: [NordLynx]/[OpenVPN], default: NordLynx (wireguard like)
+* TECHNOLOGY: [NordLynx](https://support.nordvpn.com/hc/en-us/articles/19564565879441-What-is-NordLynx)/[OpenVPN](https://support.nordvpn.com/hc/en-us/articles/19683394518161-OpenVPN-connection-on-NordVPN)/[nordwhisper](https://nordvpn.com/blog/nordwhisper-protocol/), default: NordLynx (wireguard like)
 * PROTOCOL: udp (default), tcp. Can only be used with TECHNOLOGY=OpenVPN.
 * [OBFUSCATE](https://nordvpn.com/features/obfuscated-servers/): [off/on], default off, hide vpn's use.
 * CONNECT: [country]/[server]/[country_code]/[city] or [country] [city], if none provide you will connect to argentina server.
