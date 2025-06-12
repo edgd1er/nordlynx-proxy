@@ -190,6 +190,7 @@ usage() {
   echo -e "\t-t\tTest a running container"
   echo -e "\t-u\tTest an ubuntu container (debug nordvpn client)"
   echo -e "\t-h\tThis help"
+  echo -e "\n\n username password may be saved to tiny_creds for proxy(http/socks), to nordvpn_creds for nordvpn client."
 }
 
 #Main
