@@ -148,8 +148,8 @@ createUserForAuthifNeeded(){
 getTinyCred(){
   TCREDS_SECRET_FILE=/run/secrets/TINY_CREDS
   if [[ -f ${TCREDS_SECRET_FILE} ]]; then
-    TINYUSER=$(head -1 ${TCREDS_SECRET_FILE})
-    TINYPASS=$(tail -1 ${TCREDS_SECRET_FILE})
+    TINYUSER=$(sed -n '1p' ${TCREDS_SECRET_FILE})
+    TINYPASS=$(sed -n '2p' -1 ${TCREDS_SECRET_FILE})
   fi
   if [[ -n ${TINYUSER:-''} ]] && [[ -n ${TINYPASS:-''} ]]; then
     TINYCRED="${TINYUSER}:${TINYPASS}@"

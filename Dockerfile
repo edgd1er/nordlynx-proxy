@@ -1,6 +1,6 @@
 FROM debian:bookworm-slim
 ARG aptcacher=""
-ARG VERSION=3.20.3
+ARG VERSION=4.0.0
 ARG TZ=America/Chicago
 ARG WG=false
 
@@ -15,10 +15,10 @@ LABEL maintainer="edgd1er <edgd1er@htomail.com>" \
       org.label-schema.schema-version="1.0"
 
 ENV TZ=${TZ}
-ENV NORDVPN_VERSION=3.20.3
+ENV NORDVPN_VERSION=4.0.0
 ENV DEBIAN_FRONTEND=noninteractive
 ENV GENERATE_WIREGUARD_CONF=false
-ENV ANALYTICS=on
+ENV ANALYTICS=off
 ENV KILLERSWITCH=on
 ENV CYBER_SEC=off
 ENV TECHNOLOGY=nordlynx
@@ -39,9 +39,6 @@ ENV PROTOCOL=udp
 ENV COUNTRY=argentina
 ENV GROUP=P2P
 
-COPY etc/ /etc/
-COPY app/ /app/
-
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 #add apt-cacher setting if present:
 #hadolint ignore=DL3018,DL3008
@@ -53,28 +50,33 @@ RUN if [[ -n "${aptcacher}" ]]; then echo "Acquire::http::Proxy \"http://${aptca
     # nordvpn requirements
     iproute2 iptables readline-common dirmngr gnupg gnupg-l10n gnupg-utils gpg gpg-agent gpg-wks-client \
     gpg-wks-server gpgconf gpgsm libassuan0 libksba8 libnpth0 libreadline8 libsqlite3-0 lsb-base pinentry-curses \
-    #check conf template with package conf
-    && diff /etc/tinyproxy/tinyproxy.conf /etc/tinyproxy.conf.tmpl || true \
-    && diff /etc/dante/danted.conf /etc/danted.conf.tmpl || true \
-    # wireguard
     && if [[ ${WG} != false ]]; then apt-get -o Dpkg::Options::="--force-confold" install -y --no-install-recommends wireguard wireguard-tools; fi \
     && wget -nv -t10 -O /tmp/nordrepo.deb  "https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/n/nordvpn-release/nordvpn-release_1.0.0_all.deb" \
     && apt-get install -qqy --no-install-recommends -f /tmp/nordrepo.deb && apt-get update \
     && apt-get install -qqy --no-install-recommends -y nordvpn="${VERSION}" \
     && apt-get remove -y wget nordvpn-release && find /etc/apt/ -iname "*.list" -exec cat {} \; && echo \
-    && mkdir -p /run/nordvpn && chmod a+x /app/*.sh \
+    && mkdir -p /run/nordvpn \
     && addgroup --system vpn && useradd -lNms /usr/bin/bash -u "${NUID:-1000}" -G nordvpn,vpn nordclient \
+    && apt-get clean all && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+    && if [[ -f /etc/apt/apt.conf.d/01proxy ]]; then rm /etc/apt/apt.conf.d/01proxy; fi;
+
+#add apps and conf
+COPY etc/ /etc/
+COPY --chmod=0755 app/ /app/
+
+#check conf template with package conf
+RUN diff /etc/tinyproxy/tinyproxy.conf /etc/tinyproxy.conf.tmpl || true \
+    && diff /etc/dante/danted.conf /etc/danted.conf.tmpl || true \
+    # wireguard
     && echo "alias checkip='curl -sm 10 \"https://zx2c4.com/ip\";echo'" | tee -a ~/.bashrc \
-    && echo "alias checkhttp='TCF=/run/secrets/TINY_CREDS; [[ -f \${TCF} ]] && TCREDS=\"\$(head -1 \${TCF}):\$(tail -1 \${TCF})@\" || TCREDS=\"\";curl -4 -sm 10 -x http://\${TCREDS}\${HOSTNAME}:\${WEBPROXY_PORT:-8888} \"https://ifconfig.me/ip\";echo'" | tee -a ~/.bashrc \
-    && echo "alias checksocks='TCF=/run/secrets/TINY_CREDS; [[ -f \${TCF} ]] && TCREDS=\"\$(head -1 \${TCF}):\$(tail -1 \${TCF})@\" || TCREDS=\"\";curl -4 -sm10 -x socks5h://\${TCREDS}\${HOSTNAME}:1080 \"https://ifconfig.me/ip\";echo'" | tee -a ~/.bashrc \
+    && echo "alias checkhttp='TCF=/run/secrets/TINY_CREDS; [[ -f \${TCF} ]] && TCREDS=\"\$(sed -n \"1p\" \${TCF}):\$(sed -n \"2p\" \${TCF})@\" || TCREDS=\"\";curl -4 -sm 10 -x http://\${TCREDS}\${HOSTNAME}:\${WEBPROXY_PORT:-8888} \"https://ifconfig.me/ip\";echo'" | tee -a ~/.bashrc \
+    && echo "alias checksocks='TCF=/run/secrets/TINY_CREDS; [[ -f \${TCF} ]] && TCREDS=\"\$(sed -n \"2p\" \${TCF}):\$(sed -n \"2p\" \${TCF})@\" || TCREDS=\"\";curl -4 -sm10 -x socks5h://\${TCREDS}\${HOSTNAME}:1080 \"https://ifconfig.me/ip\";echo'" | tee -a ~/.bashrc \
     && echo "alias checkvpn='nordvpn status | grep -oP \"(?<=Status: ).*\"'" | tee -a ~/.bashrc \
     && echo "alias gettiny='grep -vP \"(^$|^#)\" /etc/tinyproxy/tinyproxy.conf'" | tee -a ~/.bashrc \
     && echo "alias getdante='grep -vP \"(^$|^#)\" /etc/sockd.conf'" | tee -a ~/.bashrc \
     && echo "alias dltest='curl http://appliwave.testdebit.info/100M.iso -o /dev/null'" | tee -a ~/.bashrc \
     && echo "function getversion(){ apt-get update && apt-get install -y --allow-downgrades nordvpn=\${1:-3.16.9} && supervisorctl start start_vpn; }" | tee -a ~/.bashrc \
-    && echo "function showversion(){ apt-cache show nordvpn |grep -oP '(?<=Version: ).+' | sort | awk 'NR==1 {first = \$0} END {print first\" - \"\$0; }'; }" | tee -a ~/.bashrc \
-    && apt-get clean all && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
-    && if [[ -f /etc/apt/apt.conf.d/01proxy ]]; then rm /etc/apt/apt.conf.d/01proxy; fi;
+    && echo "function showversion(){ apt-cache show nordvpn |grep -oP '(?<=Version: ).+' | sort | awk 'NR==1 {first = \$0} END {print first\" - \"\$0; }'; }" | tee -a ~/.bashrc
 
 HEALTHCHECK --interval=5m --timeout=20s --start-period=1m CMD /app/healthcheck.sh
 WORKDIR /app

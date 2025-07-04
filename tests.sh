@@ -73,8 +73,8 @@ testProxies() {
     areProxiesPortOpened
   fi
   if [[ -f ./tiny_creds ]]; then
-    usertiny=$(head -1 ./tiny_creds)
-    passtiny=$(tail -1 ./tiny_creds)
+    usertiny=$(sed -n '1p' ./tiny_creds)
+    passtiny=$(sed -n '2p' ./tiny_creds)
     echo "Getting tinyCreds from file: ${usertiny}:${passtiny}"
     TCREDS="${usertiny}:${passtiny}@"
     DCREDS="${TCREDS}"

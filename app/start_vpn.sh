@@ -42,6 +42,8 @@ setup_nordvpn() {
   if [[ ${PROTOCOL,,} == "tcp" ]] && [[ ${TECHNOLOGY,,} = 'openvpn' ]]; then
       nordvpn set protocol ${PROTOCOL:-'udp'}
   fi
+  nordvpn set notify off
+  nordvpn set tray off
   nordvpn set cybersec ${CYBER_SEC:-'off'}
   nordvpn set killswitch ${KILLERSWITCH:-'on'}
   nordvpn set ipv6 ${IPV6} 2>/dev/null
@@ -131,7 +133,7 @@ sleep 4
 while [ ! -S ${RDIR}/nordvpnd.sock ]; do
   log "WARNING: NORDVPN: restart nordvpn daemon as no socket was found"
   supervisorctl restart nordvpnd
-  sleep 4
+  sleep 6
 done
 
 #make /dev/tun if missing
@@ -139,6 +141,8 @@ done
 mkTun
 enforce_proxies_iptables
 
+#define connection parameters
+setup_nordvpn
 
 #Use env login if present
 if [[ -z ${NORDVPN_PASS:-''} ]] && [[ -n ${NORDVPN_LOGIN:-''} ]]; then
@@ -178,8 +182,7 @@ if [[ "${res}" != *"Welcome to NordVPN"* ]] && [[ "${res}" != *"You are already 
 fi
 log "INFO: NORDVPN: logged in: ${res}"
 
-#define connection parameters
-setup_nordvpn
+
 log "INFO: NORDVPN: connecting to ${GROUP} ${CONNECT} "
 
 #connect to vpn
