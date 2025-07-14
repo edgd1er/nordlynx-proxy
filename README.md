@@ -17,9 +17,14 @@
 [NordVPN client's version](https://nordvpn.com/fr/blog/nordvpn-linux-release-notes/) or [changelog](
 https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/nordvpn_4.0.0_amd64.changelog): 4.0.0 (12-06-2025)
 
-As of 2024/11/18, nordvpn reorganized its repository and removed pre 3.17.0 versions. privileged mode is now required for the container.
-Image with nordvpn's client >3.17.0 require privileged Mode. Pre 3.17 versions are running without root privileges at container level. Set env var NORDVPN_VERSION to 3.16.9 for instance, to force a nordvpn package downgrade during setup process. Running privileged container is a risk.
-furhtermore container cannot be removed as it doesn't remove its graps on /etc/resolv.conf `Error response from daemon: unable to remove filesystem for XXXX: unlinkat /var/lib/docker/containers/YYY/resolv.conf: operation not permitted`. I guess a new version will be released soon.
+As of 2024/11/18, nordvpn reorganized its repository and removed pre 3.17.0 versions. privileged mode is now required for the container when using latest or <env>-debian.
+
+Starting from 2025/07/14, two new docker tags are added <version>-debian, <version>-ubuntu.
+Debian based image requires privilege mode, please note that running privileged container is a risk.
+Ubuntu based image do not require privilege mode.
+Latest tag is based on debian as previously.
+
+you may set env var NORDVPN_VERSION to install a specific nordvpn package downgrade during setup process. 
 
 Warning 1: login process is sometimes unstable: 
 ```

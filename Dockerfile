@@ -1,15 +1,19 @@
-FROM debian:bookworm-slim
+ARG base=debian:bookworm-slim
+ARG base=ubuntu:24.04
+#hadolint ignore=DL3006
+FROM ${base} AS base
+ARG base
 ARG aptcacher=""
 ARG VERSION=4.0.0
 ARG TZ=America/Chicago
 ARG WG=false
+ARG BUILD_DATE
 
 LABEL maintainer="edgd1er <edgd1er@htomail.com>" \
       org.label-schema.build-date=$BUILD_DATE \
-      org.label-schema.name="nordlynx-proxy" \
+      org.label-schema.name="nordlynx-proxy (${base})" \
       org.label-schema.description="Provides VPN through NordVpn application." \
       org.label-schema.url="https://hub.docker.com/r/edgd1er/nordlynx-proxy" \
-      org.label-schema.vcs-ref=$VCS_REF \
       org.label-schema.vcs-url="https://github.com/edgd1er/nordlynx-proxy" \
       org.label-schema.version=$VERSION \
       org.label-schema.schema-version="1.0"
@@ -49,14 +53,19 @@ RUN if [[ -n "${aptcacher}" ]]; then echo "Acquire::http::Proxy \"http://${aptca
     ca-certificates tzdata dante-server net-tools tinyproxy zstd \
     # nordvpn requirements
     iproute2 iptables readline-common dirmngr gnupg gnupg-l10n gnupg-utils gpg gpg-agent gpg-wks-client \
-    gpg-wks-server gpgconf gpgsm libassuan0 libksba8 libnpth0 libreadline8 libsqlite3-0 lsb-base pinentry-curses \
+    gpg-wks-server gpgconf gpgsm libassuan0 libksba8 libsqlite3-0 lsb-base pinentry-curses \
     && if [[ ${WG} != false ]]; then apt-get -o Dpkg::Options::="--force-confold" install -y --no-install-recommends wireguard wireguard-tools; fi \
-    && wget -nv -t10 -O /tmp/nordrepo.deb  "https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/n/nordvpn-release/nordvpn-release_1.0.0_all.deb" \
-    && apt-get install -qqy --no-install-recommends -f /tmp/nordrepo.deb && apt-get update \
-    && apt-get install -qqy --no-install-recommends -y nordvpn="${VERSION}" \
-    && apt-get remove -y wget nordvpn-release && find /etc/apt/ -iname "*.list" -exec cat {} \; && echo \
-    && mkdir -p /run/nordvpn \
-    && addgroup --system vpn && useradd -lNms /usr/bin/bash -u "${NUID:-1000}" -G nordvpn,vpn nordclient \
+    && apt-get clean all && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+    #&& wget -nv -t10 -O /tmp/nordrepo.deb  "https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/n/nordvpn-release/nordvpn-release_1.0.0_all.deb" \
+    #&& apt-get install -qqy --no-install-recommends -f /tmp/nordrepo.deb && apt-get update \
+    #&& apt-get install -qqy --no-install-recommends -y nordvpn="${VERSION}" \
+    #&& apt-get remove -y wget nordvpn-release && find /etc/apt/ -iname "*.list" -exec cat {} \; && echo \
+    #&& addgroup --system vpn && useradd -lNms /usr/bin/bash -u "${NUID:-1000}" -G nordvpn,vpn nordclient \
+RUN mkdir -p /run/nordvpn \
+    && sh <(curl -sSf https://downloads.nordcdn.com/apps/linux/install.sh) -n -v ${VERSION} \
+    && addgroup --system vpn \
+    # && useradd -lNms /usr/bin/bash -u "${NUID:-1000}" -G nordvpn,vpn nordclient \
+    && usermod -aG nordvpn,vpn root \
     && apt-get clean all && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
     && if [[ -f /etc/apt/apt.conf.d/01proxy ]]; then rm /etc/apt/apt.conf.d/01proxy; fi;
 

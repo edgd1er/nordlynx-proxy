@@ -1,0 +1,70 @@
+name: build multi-arch images based on debian with and without wireguard-tools
+
+env:
+  IMAGE: nordlynx-proxy
+  TAG: latest
+  PUSH: true
+  OS: debian:bookworm-slim # ubuntu:24.04
+  WG: false # true
+  PTF: "linux/amd64,linux/arm64,linux/arm/v7"
+  # no dante-server on ubuntu 24.04 for armhf
+
+on:
+  workflow_dispatch:
+    inputs:
+      mypush:
+        type: boolean
+        default: false
+        description: "push true/false"
+  push:
+    branches:
+      - main
+      - dev
+    paths-ignore:
+      - '.github/**'
+      - 'README.md'
+
+jobs:
+    envtooutput:
+      runs-on: ubuntu-latest
+      outputs:
+        image: ${{ env.IMAGE }}
+        tag: ${{ env.TAG }}
+        ptf: ${{ env.PTF }}
+        os: ${{ env.OS }}
+        push: "${{ env.PUSH }}"
+        wg: "${{ env.WG }}"
+      steps:
+        - name: dummy task to get outputs.
+          run: |
+            ls -al
+            export
+
+    build-bookworm-nowg:
+      needs: envtooutput
+      uses: ./.github/workflows/buildPush_template.yml
+      with:
+        image: "${{ needs.envtooutput.outputs.image }}"
+        tag: "${{ needs.envtooutput.outputs.tag }}"
+        ptf: "${{ needs.envtooutput.outputs.ptf }}"
+        os: "${{ needs.envtooutput.outputs.os }}"
+        #push: false
+        push: ${{ needs.envtooutput.outputs.push == true || needs.envtooutput.outputs.push == 'true' }}
+        #wg: false # true
+        wg: ${{ needs.envtooutput.outputs.wg == true || needs.envtooutput.outputs.wg == 'true' }}
+      secrets: inherit
+
+    build-bookworm-wg:
+      needs: envtooutput
+      uses: ./.github/workflows/buildPush_template.yml
+      with:
+        image: "${{ needs.envtooutput.outputs.image }}"
+        tag: "${{ needs.envtooutput.outputs.tag }}"
+        ptf: "${{ needs.envtooutput.outputs.ptf }}"
+        os: "${{ needs.envtooutput.outputs.os }}"
+        #push: false
+        push: ${{ needs.envtooutput.outputs.push == true || needs.envtooutput.outputs.push == 'true' }}
+        #wg: false # true
+        #wg: ${{ needs.envtooutput.outputs.wg == true || needs.envtooutput.outputs.wg == 'true' }}
+        wg: true
+      secrets: inherit
