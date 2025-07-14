@@ -90,7 +90,13 @@ testProxies() {
     TCREDS=""
     DCREDS=""
   fi
-  vpnIP=$(curl -m5 -sx http://${TCREDS}${PROXY_HOST}:${HTTP_PORT} "https://ifconfig.me/ip") || true
+  declare -i try
+  try=0
+  vpnIP=
+  while [[ -z $vpnIP ]] && [[ try -lt 3 ]]; do
+    vpnIP=$(curl -m5 -sx http://${TCREDS}${PROXY_HOST}:${HTTP_PORT} "https://ifconfig.me/ip")
+    try+=1
+  done
   if [[ $? -eq 0 ]] && [[ ${myIp} != "${vpnIP}" ]] && [[ ${#vpnIP} -gt 0 ]]; then
     echo "http proxy: IP is ${vpnIP}, mine is ${myIp}"
   else
@@ -100,7 +106,12 @@ testProxies() {
   fi
 
   #check detected ips
-  vpnIP=$(curl -m5 -sx socks5h://${DCREDS}${PROXY_HOST}:${SOCK_PORT} "https://ifconfig.me/ip") || true
+  try=0
+  vpnIP=
+  while [[ -z $vpnIP ]] && [[ try -lt 3 ]]; do
+    vpnIP=$(curl -m5 -sx socks5h://${DCREDS}${PROXY_HOST}:${SOCK_PORT} "https://ifconfig.me/ip") || true
+    try+=1
+  done
   if [[ $? -eq 0 ]] && [[ ${myIp} != "${vpnIP}" ]] && [[ ${#vpnIP} -gt 0 ]]; then
     echo "socks proxy: IP is ${vpnIP}, mine is ${myIp}"
   else
