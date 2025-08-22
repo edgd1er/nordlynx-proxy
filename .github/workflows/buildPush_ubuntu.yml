@@ -1,4 +1,4 @@
-name: build multi-arch images based on ubuntu without and with wireguard-tools
+name: ubuntu based multi-arch images w/o wireguard-tools
 
 env:
   IMAGE: nordlynx-proxy
@@ -32,7 +32,7 @@ jobs:
         tag: ${{ env.TAG }}
         ptf: ${{ env.PTF }}
         os: ${{ env.OS }}
-        push: "${{ env.PUSH }}"
+        push: "${{ inputs.mypush }}"
         wg: "${{ env.WG }}"
       steps:
         - name: dummy task to get outputs.
@@ -49,9 +49,8 @@ jobs:
         ptf: "${{ needs.envtooutput.outputs.ptf }}"
         os: "${{ needs.envtooutput.outputs.os }}"
         #push: false
-        push: ${{ needs.envtooutput.outputs.push == true || needs.envtooutput.outputs.push == 'true' }}
-        #wg: false # true
-        wg: ${{ needs.envtooutput.outputs.wg == true || needs.envtooutput.outputs.wg == 'true' }}
+        push: ${{ needs.envtooutput.outputs.push == 'true' }}
+        wg: false
       secrets: inherit
 
     build-ubuntu-wg:
@@ -63,8 +62,6 @@ jobs:
         ptf: "${{ needs.envtooutput.outputs.ptf }}"
         os: "${{ needs.envtooutput.outputs.os }}"
         #push: false
-        push: ${{ needs.envtooutput.outputs.push == true || needs.envtooutput.outputs.push == 'true' }}
-        #wg: false # true
-        #wg: ${{ needs.envtooutput.outputs.wg == true || needs.envtooutput.outputs.wg == 'true' }}
+        push: ${{ needs.envtooutput.outputs.push == 'true' }}
         wg: true
       secrets: inherit

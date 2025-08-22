@@ -48,8 +48,9 @@ jobs:
             echo "PTF=linux/amd64">> $GITHUB_ENV
           fi
           echo "PUSH=$PUSH" >> $GITHUB_ENV
+          
           IMAGE="${{ inputs.image }}"
-          if [[ "${{ inputs.WG }}" == "true" ]]; then
+          if [[ "${{ inputs.wg }}" == "true" ]]; then
             IMAGE="${{ inputs.image }}-wg"
           fi
           echo "IMAGE=$IMAGE">> $GITHUB_ENV
@@ -101,6 +102,7 @@ jobs:
             org.opencontainers.image.created={{commit_date 'YYYY-MM-DDTHH:mm:ss.SSS[Z]'}}
           tags: |
             type=raw,enable=true,priority=200,prefix=,suffix=,value=${{ env.VERSION }}-${{ env.tagos }}        
+            type=raw,enable=true,priority=200,prefix=,suffix=,value=latest-${{ env.tagos }}        
             type=raw,enable=${{ contains(inputs.os,'debian') }},priority=200,prefix=,suffix=,value=${{ inputs.TAG }}
       - name: Build and push
         id: build
@@ -113,6 +115,7 @@ jobs:
             base=${{ inputs.os }}
             VERSION=${{ env.VERSION }}
             BUILD_DATE=${{ env.DATE }}
+            WG=${{ inputs.wg }}
             TZ=America/Chicago
           platforms: ${{ env.PTF }}
           #tags: ${{ steps.meta.outputs.tags }} # comment as added through imagetools
