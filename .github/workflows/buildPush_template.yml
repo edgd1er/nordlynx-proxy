@@ -101,6 +101,7 @@ jobs:
             org.opencontainers.image.created={{commit_date 'YYYY-MM-DDTHH:mm:ss.SSS[Z]'}}
           tags: |
             type=raw,enable=true,priority=200,prefix=,suffix=,value=${{ env.VERSION }}-${{ env.tagos }}        
+            type=raw,enable=true,priority=200,prefix=,suffix=,value=latest-${{ env.tagos }}        
             type=raw,enable=${{ contains(inputs.os,'debian') }},priority=200,prefix=,suffix=,value=${{ inputs.TAG }}
       - name: Build and push
         id: build

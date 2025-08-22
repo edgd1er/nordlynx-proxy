@@ -1,4 +1,4 @@
-name: build multi-arch images based on ubuntu without and with wireguard-tools
+name: ubuntu based multi-arch images w/o wireguard-tools
 
 env:
   IMAGE: nordlynx-proxy
@@ -49,9 +49,9 @@ jobs:
         ptf: "${{ needs.envtooutput.outputs.ptf }}"
         os: "${{ needs.envtooutput.outputs.os }}"
         #push: false
-        push: ${{ needs.envtooutput.outputs.push == true || needs.envtooutput.outputs.push == 'true' }}
-        #wg: false # true
-        wg: ${{ needs.envtooutput.outputs.wg == true || needs.envtooutput.outputs.wg == 'true' }}
+        push: ${{ needs.envtooutput.outputs.push == true || env.push == true }}
+        wg: false # true
+        #wg: ${{ needs.envtooutput.outputs.wg == true || env.WG == true }}
       secrets: inherit
 
     build-ubuntu-wg:
@@ -63,8 +63,6 @@ jobs:
         ptf: "${{ needs.envtooutput.outputs.ptf }}"
         os: "${{ needs.envtooutput.outputs.os }}"
         #push: false
-        push: ${{ needs.envtooutput.outputs.push == true || needs.envtooutput.outputs.push == 'true' }}
-        #wg: false # true
-        #wg: ${{ needs.envtooutput.outputs.wg == true || needs.envtooutput.outputs.wg == 'true' }}
+        push: ${{ needs.envtooutput.outputs.push == true || env.PUSH == true }}
         wg: true
       secrets: inherit

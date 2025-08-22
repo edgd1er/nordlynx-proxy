@@ -1,9 +1,9 @@
-name: build multi-arch images based on debian with and without wireguard-tools
+name: debian based multi-arch images w/o wireguard-tools
 
 env:
   IMAGE: nordlynx-proxy
   TAG: latest
-  PUSH: true
+  PUSH: false
   OS: debian:bookworm-slim # ubuntu:24.04
   WG: false # true
   PTF: "linux/amd64,linux/arm64,linux/arm/v7"
@@ -49,9 +49,9 @@ jobs:
         ptf: "${{ needs.envtooutput.outputs.ptf }}"
         os: "${{ needs.envtooutput.outputs.os }}"
         #push: false
-        push: ${{ needs.envtooutput.outputs.push == true || needs.envtooutput.outputs.push == 'true' }}
-        #wg: false # true
-        wg: ${{ needs.envtooutput.outputs.wg == true || needs.envtooutput.outputs.wg == 'true' }}
+        push: ${{ needs.envtooutput.outputs.push == true || env.push == true }}
+        wg: false # true
+        #wg: ${{ needs.envtooutput.outputs.wg == true || env.WG == true }}
       secrets: inherit
 
     build-bookworm-wg:
@@ -63,8 +63,6 @@ jobs:
         ptf: "${{ needs.envtooutput.outputs.ptf }}"
         os: "${{ needs.envtooutput.outputs.os }}"
         #push: false
-        push: ${{ needs.envtooutput.outputs.push == true || needs.envtooutput.outputs.push == 'true' }}
-        #wg: false # true
-        #wg: ${{ needs.envtooutput.outputs.wg == true || needs.envtooutput.outputs.wg == 'true' }}
+        push: ${{ needs.envtooutput.outputs.push == true || env.PUSH == true }}
         wg: true
       secrets: inherit
