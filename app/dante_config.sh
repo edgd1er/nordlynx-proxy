@@ -4,7 +4,7 @@ set -e -u -o pipefail
 ##Functions
 source /app/utils.sh
 SOURCE_DANTE_CONF=/etc/danted.conf.tmpl
-DANTE_CONF=/etc/sockd.conf
+DANTE_CONF=/etc/danted.conf
 DANTE_DEBUG=${DANTE_DEBUG:-0}
 DANTE_LOGLEVEL=${DANTE_LOGLEVEL:-"error"}
 INTERFACE=$(ifconfig | grep -oE "(nordtun|nordlynx)")

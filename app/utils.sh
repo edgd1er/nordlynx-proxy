@@ -119,7 +119,7 @@ getTinyConf() {
 }
 
 getDanteConf() {
-  grep -v ^# /etc/sockd.conf | sed "/^$/d"
+  grep -v ^# /etc/danted.conf | sed "/^$/d"
 }
 
 getTinyListen() {
