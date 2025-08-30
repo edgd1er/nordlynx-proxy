@@ -4,11 +4,11 @@ set -euop pipefail
 
 #vars
 CPSE=compose.yml
-PROXY_HOST="localhost"
+
 #HTTP_PORT=28$(grep -oP '(?<=\- "28)[^:]+' ${CPSE})
 #SOCK_PORT=20$(grep -oP '(?<=\- "20)[^:]+' ${CPSE})
-HTTP_PORT=$(grep -oP "(?<=- \")[0-9]{4}(?=:[0-9]{4}\" #http)" ${CPSE})
-SOCK_PORT=$(grep -oP "(?<=- \")[0-9]{4}(?=:[0-9]{4}\" #socks)" ${CPSE})
+HTTP_PORT=$(grep -oP "[0-9]{4}(?=:[0-9]{4}\" #http)" ${CPSE})
+SOCK_PORT=$(grep -oP "[0-9]{4}(?=:[0-9]{4}\" #socks)" ${CPSE})
 SERVICE=$(sed -n '/services:/{n;p}' ${CPSE} | grep -oP '\w+')
 TRANS_PORT=9091
 #Common
@@ -22,6 +22,8 @@ else
   TINYLOG=/var/log/tinyproxy/tinyproxy.log
   DANTELOG=/var/log/dante.log
 fi
+
+PROXY_HOST=$(ip -4 -j -f inet a | jq -r 'first(.[]|select(.ifname | IN("enp1s0","eth0","wlp2s0","bond0"))| .addr_info[]|select(.family=="inet")|.local)')
 
 #Functions
 buildAndWait() {
@@ -47,7 +49,7 @@ areProxiesPortOpened() {
   [[ ${SERVICE} == "transmission" ]] && TM="${TRANS_PORT}" || TM=""
   for PORT in ${HTTP_PORT} ${SOCK_PORT} ${TM}; do
     msg="Test connection to port ${PORT}: "
-    if [ 0 -eq $(echo "" | nc -v -w2 ${PROXY_HOST} ${PORT} 2>&1 | grep -c "] succeeded") ]; then
+    if [ 0 -eq $(echo "" | nc -v -q1 -w2 ${PROXY_HOST} ${PORT} 2>&1|grep -c -P "(succeeded|open)") ]; then
       msg+=" Failed"
       ((FAILED += 1))
     else
@@ -135,21 +137,23 @@ getTransWebPage() {
   if [[ -e rpc_creds ]]; then
     transcreds="$(sed -n '1p' ./rpc_creds):$(sed -n '2p' ./rpc_creds)@"
   fi
-  curl http://${transcreds}localhost:${TRANS_PORT}/transmission/web/
+  curl http://${transcreds}${PROXY_HOST}:${TRANS_PORT}/transmission/web/
 }
 
 checkOuput() {
-  TINY_OUT=$(grep -oP '(?<=\- TINYLOGOUTPUT=)[^ ]+' ${CPSE})
-  DANTE_OUT=$(grep -oP '(?<=\- DANTE_LOGOUTPUT=)[^ ]+' ${CPSE})
-  DANTE_RES=$(docker compose -f ${CPSE} exec ${SERVICE} grep -oP "(?<=^logoutput: ).+" /etc/danted.conf 2>/dev/null)
-  TINY_RES=$(docker compose -f ${CPSE} exec ${SERVICE} grep -oP "(?<=^LogFile )(?:\")[^\"]+" /etc/tinyproxy/tinyproxy.conf | tr -d '"')
-  TINY_RES=${TINY_RES:-'no log'}
-  echo -e "\nOut tiny: ${TINY_OUT}, dante: ${DANTE_OUT}"
+  TINY_OUT=$(grep -oP '(?<=\- TINYLOGOUTPUT=)[^ ]+' ${CPSE}) || TINY_OUT="stdout"
+  DANTE_OUT=$(grep -oP '(?<=\- DANTE_LOGOUTPUT=)[^ ]+' ${CPSE}) || DANTE_OUT="stdout"
+  DANTE_RES=$(docker compose -f ${CPSE} exec ${SERVICE} grep -oP "(?<=^logoutput: ).+" /etc/danted.conf 2>/dev/null || true)
+  DANTE_RES=${DANTE_RES:-'stdout'}
+  TINY_RES=$(docker compose -f ${CPSE} exec ${SERVICE} grep -oP "(?<=^LogFile )(?:\")[^\"]+" /etc/tinyproxy/tinyproxy.conf | tr -d '"' || true)
+  TINY_RES=${TINY_RES:-'stdout'}
   echo "Res tiny: ${TINY_RES}, dante: ${DANTE_RES}"
+  echo -e "\nOut tiny: ${TINY_OUT}, dante: ${DANTE_OUT}"
   echo "Logs tiny: ${TINYLOG}, dante: ${DANTELOG}"
   #dantelog check
   echo "Logs output checks:"
   if [[ ${DANTE_OUT} =~ file ]]; then
+
     d=$(($(date +%s) - $(docker compose exec ${SERVICE} date +%s -r ${DANTELOG})))
     if [[ ${DANTE_RES} == stdout ]] || [[ 10000 -lt ${d} ]]; then
       echo "ERROR, $DANTELOG not found when $DANTE_OUT == file. Last access: ${d}, config found: ${DANTE_RES}"
@@ -173,11 +177,11 @@ checkOuput() {
       echo "OK, $TINYLOG found as expected. Last access: ${t}."
     fi
   else
-    ## TINY_RES should be empty
-    if [[ -n ${TINY_RES} ]]; then
-      echo "ERROR, $TINYLOG found when $TINY_OUT == stdout. config found: ${TINY_RES}"
+    ## TINY_RES should be = "no log"
+    if [[ "stdout" != ${TINY_RES} ]]; then
+      echo "ERROR, no log expected. log output(TINY_OUT)=$TINY_OUT, config(TINY_RES)=${TINY_RES}, TINYLOG=${TINYLOG}."
     else
-      echo "OK, $TINYLOG not found as expected. config found: ${TINY_RES}"
+      echo "OK, log output(TINY_OUT)=${TINY_OUT}, config(TINY_RES)=${TINY_RES}, TINYLOG=${TINYLOG}."
     fi
   fi
 }
@@ -204,9 +208,10 @@ checkContainer() {
 usage() {
   echo "$0: build and test container"
   echo -e "\t-b\tBuild and test"
+  echo -e "\t-h\tThis help"
   echo -e "\t-t\tTest a running container"
   echo -e "\t-u\tTest an ubuntu container (debug nordvpn client)"
-  echo -e "\t-h\tThis help"
+  echo -e "\t-v\tmode verbose"
   echo -e "\n\n username password may be saved to tiny_creds for proxy(http/socks), to nordvpn_creds for nordvpn client."
 }
 
@@ -216,7 +221,7 @@ usage() {
 myIp=$(curl -4m5 -sq https://ifconfig.me/ip)
 
 # Get the options
-while getopts ":bhtu" option; do
+while getopts ":bhtuv" option; do
   case ${option} in
   b)
     BUILD=1
@@ -233,6 +238,9 @@ while getopts ":bhtu" option; do
   u) # build ubuntu image with nordvpn client
     ubuntuBuild
     exit
+    ;;
+  v)
+    set -x
     ;;
   ? | *)
     echo "Unknown option"
