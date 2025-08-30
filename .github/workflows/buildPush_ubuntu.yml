@@ -4,7 +4,7 @@ env:
   IMAGE: nordlynx-proxy
   TAG: latest
   PUSH: false
-  OS: ubuntu:24.04 #debian:bookworm
+  BASE_IMAGE: ubuntu:24.04 #debian:bookworm
   WG: false # true
   PTF: "linux/amd64,linux/arm64"
   # no dante-server on ubuntu 24.04 for armhf
@@ -31,7 +31,7 @@ jobs:
         image: ${{ env.IMAGE }}
         tag: ${{ env.TAG }}
         ptf: ${{ env.PTF }}
-        os: ${{ env.OS }}
+        base_image: ${{ env.BASE_IMAGE }}
         push: "${{ inputs.mypush }}"
         wg: "${{ env.WG }}"
       steps:
@@ -47,7 +47,7 @@ jobs:
         image: "${{ needs.envtooutput.outputs.image }}"
         tag: "${{ needs.envtooutput.outputs.tag }}"
         ptf: "${{ needs.envtooutput.outputs.ptf }}"
-        os: "${{ needs.envtooutput.outputs.os }}"
+        base_image: "${{ needs.envtooutput.outputs.base_image }}"
         #push: false
         push: ${{ needs.envtooutput.outputs.push == 'true' }}
         wg: false
@@ -60,7 +60,7 @@ jobs:
         image: "${{ needs.envtooutput.outputs.image }}"
         tag: "${{ needs.envtooutput.outputs.tag }}"
         ptf: "${{ needs.envtooutput.outputs.ptf }}"
-        os: "${{ needs.envtooutput.outputs.os }}"
+        base_image: "${{ needs.envtooutput.outputs.base_image }}"
         #push: false
         push: ${{ needs.envtooutput.outputs.push == 'true' }}
         wg: true

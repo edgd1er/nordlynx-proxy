@@ -23,7 +23,7 @@ on:
         # no dante-server on ubuntu 24.04 for armhf
         default: "linux/amd64, linux/arm64, linux/arm/v7"
         description: "platforms linux/xx"
-      os:
+      base_image:
         type: string
         default: debian:bookworm # ubuntu:24.04
         description: "Base image debian/ubuntu"
@@ -55,11 +55,11 @@ jobs:
           fi
           echo "IMAGE=$IMAGE">> $GITHUB_ENV
       - name: set tagos ubuntu
-        if: contains(inputs.os,'ubuntu')
+        if: contains(inputs.base_image,'ubuntu')
         run: |
           echo "tagos=ubuntu">> $GITHUB_ENV
       - name: set tagos debian
-        if: contains(inputs.os,'debian')
+        if: contains(inputs.base_image,'debian')
         run: |
           echo "tagos=debian">> $GITHUB_ENV
 
@@ -73,6 +73,7 @@ jobs:
           echo "VERSION="$(grep -oP "(?<=changelog\): )[^ ]+" README.md | tr -d ' ') >> $GITHUB_ENV
           echo "DATE="$(date -u +'%Y-%m-%dT%H:%M:%SZ') >> $GITHUB_ENV
           cat $GITHUB_ENV
+
       - name: Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@v3
@@ -90,6 +91,11 @@ jobs:
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      - name: "show vars"
+        run: |
+          echo "base_image=${{ inputs.base_image }}, VERSION=${{ inputs.version }}, TWCV=${{ inputs.twcv }}, TICV=${{ inputs.ticv }}"
+          echo "IMAGE=${{ env.IMAGE }}, TAG=${{ inputs.tag }}, tagos=${{ env.tagos }}, PUSH=${{ inputs.push }}, LOAD=${{ env.LOAD }}, PTF=${{ env.PTF }}"
+
     # type=schedule, semver, pep440, match, edge, ref, raw, sha
     # type=raw,enable=true,priority=200,prefix=,suffix=,value=
       - name: Docker meta
@@ -103,7 +109,7 @@ jobs:
           tags: |
             type=raw,enable=true,priority=200,prefix=,suffix=,value=${{ env.VERSION }}-${{ env.tagos }}        
             type=raw,enable=true,priority=200,prefix=,suffix=,value=latest-${{ env.tagos }}        
-            type=raw,enable=${{ contains(inputs.os,'debian') }},priority=200,prefix=,suffix=,value=${{ inputs.TAG }}
+            type=raw,enable=${{ contains(inputs.base_image,'debian') }},priority=200,prefix=,suffix=,value=${{ inputs.TAG }}
       - name: Build and push
         id: build
         uses: docker/build-push-action@v6
@@ -112,13 +118,12 @@ jobs:
           context: .
           file: ./Dockerfile
           build-args: |
-            base=${{ inputs.os }}
+            base=${{ inputs.base_image }}
             VERSION=${{ env.VERSION }}
             BUILD_DATE=${{ env.DATE }}
             WG=${{ inputs.wg }}
             TZ=America/Chicago
           platforms: ${{ env.PTF }}
-          #tags: ${{ steps.meta.outputs.tags }} # comment as added through imagetools
           labels: ${{ steps.meta.outputs.labels }}
           tags: ${{ steps.meta.outputs.tags }}
           push: ${{ inputs.push }}
