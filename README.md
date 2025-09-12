@@ -15,7 +15,7 @@
 # nordlynx-proxy
 
 [NordVPN client's version](https://nordvpn.com/fr/blog/nordvpn-linux-release-notes/) or [changelog](
-https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/nordvpn_4.0.0_amd64.changelog): 4.0.0 (12-06-2025)
+https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/n/nordvpn/nordvpn_4.1.1_amd64.changelog): 4.1.1 (12-09-2025)
 
 As of 2024/11/18, nordvpn reorganized its repository and removed pre 3.17.0 versions. privileged mode is now required for the container when using latest or <env>-debian.
 
