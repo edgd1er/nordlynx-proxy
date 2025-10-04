@@ -106,10 +106,12 @@ echo -e "nameserver 1.1.1.1\noptions timeout: 1 attempts:1 ndots:0" >/etc/resolv
 setTimeZone
 
 #check if installed nordvpn app is the latest available
-# checkLatest
-#[[ 1 -eq $? ]] && checkLatestApt
 checkLatestApt
-installedRequiredNordVpnClient
+if [[ -n ${NORDVPN_VERSION} ]]; then
+  installedRequiredNordVpnClient
+else
+  log "INFO: NORDVPN: no required version specified, using installed version"
+fi
 
 #log all if required: IPTABLES_LOG=1
 if [[ -f /app/logAll.sh ]]; then

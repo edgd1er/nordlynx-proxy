@@ -5,8 +5,6 @@ set -euop pipefail
 #vars
 CPSE=compose.yml
 
-#HTTP_PORT=28$(grep -oP '(?<=\- "28)[^:]+' ${CPSE})
-#SOCK_PORT=20$(grep -oP '(?<=\- "20)[^:]+' ${CPSE})
 HTTP_PORT=$(grep -oP "[0-9]{4}(?=:[0-9]{4}\" #http)" ${CPSE})
 SOCK_PORT=$(grep -oP "[0-9]{4}(?=:[0-9]{4}\" #socks)" ${CPSE})
 SERVICE=$(sed -n '/services:/{n;p}' ${CPSE} | grep -oP '\w+')
@@ -34,6 +32,7 @@ buildAndWait() {
   docker compose -f ${CPSE} up -d ${bb}
   docker compose -f ${CPSE} exec lynx rm /var/log/{tinyproxy,dante}.log 2>/dev/null || true
   echo "Waiting for the container to be up.(every ${INTERVAL} sec)"
+  n=0
   logs=""
   while [ 0 -eq $(echo $logs | grep -c "exited: start_vpn (exit status 0; expected") ]; do
     logs="$(docker compose -f ${CPSE} logs)"

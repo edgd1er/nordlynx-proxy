@@ -1,16 +1,27 @@
 [![lint nordlynx proxy dockerfile](https://github.com/edgd1er/nordlynx-proxy/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/edgd1er/nordvpn-proxy/actions/workflows/lint.yml)
 
-[![build nordlynx proxy multi-arch images](https://github.com/edgd1er/nordlynx-proxy/actions/workflows/buildPush.yml/badge.svg?branch=main)](https://github.com/edgd1er/nordvpn-proxy/actions/workflows/buildPush.yml)
+[![Debian based image ](https://github.com/edgd1er/nordlynx-proxy/actions/workflows/buildPush_debian.yml/badge.svg?branch=main)](https://github.com/edgd1er/nordlynx-proxy/actions/workflows/buildPush_debian.yml)
 
-![Docker Size](https://badgen.net/docker/size/edgd1er/nordlynx-proxy?icon=docker&label=Size)
-![Docker Pulls](https://badgen.net/docker/pulls/edgd1er/nordlynx-proxy?icon=docker&label=Pulls)
-![Docker Stars](https://badgen.net/docker/stars/edgd1er/nordlynx-proxy?icon=docker&label=Stars)
-![ImageLayers](https://badgen.net/docker/layers/edgd1er/nordlynx-proxy?icon=docker&label=Layers)
+[![Debian based image ](https://github.com/edgd1er/nordlynx-proxy/actions/workflows/buildPush_ubuntu.yml/badge.svg?branch=main)](https://github.com/edgd1er/nordlynx-proxy/actions/workflows/buildPush_ubuntu.yml)
 
-![Docker Size](https://badgen.net/docker/size/edgd1er/nordlynx-proxy-wg?icon=docker&label=Size)
-![Docker Pulls](https://badgen.net/docker/pulls/edgd1er/nordlynx-proxy-wg?icon=docker&label=Pulls)
-![Docker Stars](https://badgen.net/docker/stars/edgd1er/nordlynx-proxy-wg?icon=docker&label=Stars)
-![ImageLayers](https://badgen.net/docker/layers/edgd1er/nordlynx-proxy-wg?icon=docker&label=Layers)
+* Without wireguard tools:&emsp;&emsp;&emsp;&emsp;&emsp;&ensp;
+  ![Docker Pulls](https://badgen.net/docker/pulls/edgd1er/nordlynx-proxy?icon=docker&label=Pulls)
+  ![Docker Stars](https://badgen.net/docker/stars/edgd1er/nordlynx-proxy?icon=docker&label=Stars)
+  * Debian bookworm &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;
+    ![Docker Size](https://badgen.net/docker/size/edgd1er/nordlynx-proxy/latest-debian?icon=docker&label=Size)
+    ![ImageLayers](https://badgen.net/docker/layers/edgd1er/nordlynx-proxy/latest-debian?icon=docker&label=Layers)
+  * Ubuntu based image:&emsp;&emsp;&emsp;&emsp;&emsp;
+     ![Docker Size](https://badgen.net/docker/size/edgd1er/nordlynx-proxy/latest-ubuntu/amd64?icon=docker&label=Size)
+     ![ImageLayers](https://badgen.net/docker/layers/edgd1er/nordlynx-proxy/latest-ubuntu/amd64?icon=docker&label=Layers)
+* With wireguard tools:&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;
+  ![Docker Pulls](https://badgen.net/docker/pulls/edgd1er/nordlynx-proxy-wg?icon=docker&label=Pulls)
+  ![Docker Stars](https://badgen.net/docker/stars/edgd1er/nordlynx-proxy-wg?icon=docker&label=Stars)
+  * Debian bookworm based image &nbsp;
+  ![Docker Size](https://badgen.net/docker/size/edgd1er/nordlynx-proxy-wg/latest-debian?icon=docker&label=Size)
+  ![ImageLayers](https://badgen.net/docker/layers/edgd1er/nordlynx-proxy-wg/latest-debian?icon=docker&label=Layers)
+  * Ubuntu 24.04 based image: &emsp;&emsp;
+![Docker Size](https://badgen.net/docker/size/edgd1er/nordlynx-proxy-wg/latest-ubuntu?icon=docker&label=Size)
+![ImageLayers](https://badgen.net/docker/layers/edgd1er/nordlynx-proxy-wg/latest-ubuntu?icon=docker&label=Layers)
 
 # nordlynx-proxy
 
@@ -93,7 +104,7 @@ Might be needed, if NordVPN cannot change the settings itself.
 
 ## Environment options
 * ANALYTICS: [off/on], default on, send anonymous aggregate data: crash reports, OS version, marketing performance, and feature usage data
-* TECHNOLOGY: [NordLynx](https://support.nordvpn.com/hc/en-us/articles/19564565879441-What-is-NordLynx)/[OpenVPN](https://support.nordvpn.com/hc/en-us/articles/19683394518161-OpenVPN-connection-on-NordVPN)/[nordwhisper](https://nordvpn.com/blog/nordwhisper-protocol/), default: NordLynx (wireguard like)
+* TECHNOLOGY: [NordLynx](https://support.nordvpn.com/hc/en-us/articles/19564565879441-What-is-NordLynx)/[OpenVPN](https://support.nordvpn.com/hc/en-us/articles/19683394.1.161-OpenVPN-connection-on-NordVPN)/[nordwhisper](https://nordvpn.com/blog/nordwhisper-protocol/), default: NordLynx (wireguard like)
 * PROTOCOL: udp (default), tcp. Can only be used with TECHNOLOGY=OpenVPN.
 * [OBFUSCATE](https://nordvpn.com/features/obfuscated-servers/): [off/on], default off, hide vpn's use.
 * CONNECT: [country]/[server]/[country_code]/[city] or [country] [city], if none provide you will connect to argentina server.

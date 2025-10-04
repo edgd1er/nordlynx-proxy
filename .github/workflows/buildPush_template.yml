@@ -93,7 +93,7 @@ jobs:
 
       - name: "show vars"
         run: |
-          echo "base_image=${{ inputs.base_image }}, VERSION=${{ inputs.version }}, TWCV=${{ inputs.twcv }}, TICV=${{ inputs.ticv }}"
+          echo "base_image=${{ inputs.base_image }}, VERSION=${{ env.VERSION }}, TWCV=${{ inputs.twcv }}, TICV=${{ inputs.ticv }}"
           echo "IMAGE=${{ env.IMAGE }}, TAG=${{ inputs.tag }}, tagos=${{ env.tagos }}, PUSH=${{ inputs.push }}, LOAD=${{ env.LOAD }}, PTF=${{ env.PTF }}"
 
     # type=schedule, semver, pep440, match, edge, ref, raw, sha
