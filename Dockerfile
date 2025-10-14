@@ -4,7 +4,7 @@ ARG base=ubuntu:24.04
 FROM ${base} AS base
 ARG base
 ARG aptcacher=""
-ARG VERSION=4.1.1
+ARG VERSION=4.2.0
 ARG TZ=America/Chicago
 ARG WG=false
 ARG BUILD_DATE
@@ -19,7 +19,7 @@ LABEL maintainer="edgd1er <edgd1er@htomail.com>" \
       org.label-schema.schema-version="1.0"
 
 ENV TZ=${TZ}
-ENV NORDVPN_VERSION=4.1.1
+ENV NORDVPN_VERSION=4.2.0
 ENV DEBIAN_FRONTEND=noninteractive
 ENV GENERATE_WIREGUARD_CONF=false
 ENV ANALYTICS=off
