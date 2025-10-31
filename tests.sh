@@ -37,7 +37,7 @@ buildAndWait() {
   while [ 0 -eq $(echo $logs | grep -c "exited: start_vpn (exit status 0; expected") ]; do
     logs="$(docker compose -f ${CPSE} logs)"
     sleep ${INTERVAL}
-    ((n++))
+    (( n+= 1 ))
     echo "loop: ${n}: $(docker compose -f ${CPSE} logs | tail -1)"
     [[ ${n} -eq 15 ]] && break || true
   done
@@ -86,14 +86,14 @@ testProxies() {
   vpnIP=
   while [[ -z $vpnIP ]] && [[ try -lt 3 ]]; do
     vpnIP=$(curl -4m5 -sx http://${TCREDS}${PROXY_HOST}:${HTTP_PORT} "https://ifconfig.me/ip")
-    try+=1
+    (( try+=1 ))
   done
   if [[ $? -eq 0 ]] && [[ ${myIp} != "${vpnIP}" ]] && [[ ${#vpnIP} -gt 0 ]]; then
     echo "http proxy: IP is ${vpnIP}, mine is ${myIp}"
   else
     echo "Error, curl through http proxy to https://ifconfig.me/ip failed"
     echo "or IP (${myIp}) == vpnIP (${vpnIP})"
-    ((FAILED += 1))
+    (( FAILED += 1 ))
   fi
 
   #check detected ips
@@ -101,7 +101,7 @@ testProxies() {
   vpnIP=
   while [[ -z $vpnIP ]] && [[ try -lt 3 ]]; do
     vpnIP=$(curl -4m5 -sx socks5h://${DCREDS}${PROXY_HOST}:${SOCK_PORT} "https://ifconfig.me/ip") || true
-    try+=1
+    (( try+=1 ))
   done
   if [[ $? -eq 0 ]] && [[ ${myIp} != "${vpnIP}" ]] && [[ ${#vpnIP} -gt 0 ]]; then
     echo "socks proxy: IP is ${vpnIP}, mine is ${myIp}"
