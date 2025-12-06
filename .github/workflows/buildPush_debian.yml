@@ -4,7 +4,7 @@ env:
   IMAGE: nordlynx-proxy
   TAG: latest
   PUSH: false
-  BASE_IMAGE: debian:bookworm-slim # ubuntu:24.04
+  BASE_IMAGE: debian:13-slim
   WG: false # true
   PTF: "linux/amd64,linux/arm64,linux/arm/v7"
   # no dante-server on ubuntu 24.04 for armhf
@@ -40,7 +40,7 @@ jobs:
             ls -al
             export
 
-    build-bookworm-nowg:
+    build-debian-nowg:
       needs: envtooutput
       uses: ./.github/workflows/buildPush_template.yml
       with:
@@ -53,7 +53,7 @@ jobs:
         wg: false
       secrets: inherit
 
-    build-bookworm-wg:
+    build-debian-wg:
       needs: envtooutput
       uses: ./.github/workflows/buildPush_template.yml
       with:

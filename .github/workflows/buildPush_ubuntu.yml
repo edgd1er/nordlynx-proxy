@@ -4,7 +4,7 @@ env:
   IMAGE: nordlynx-proxy
   TAG: latest
   PUSH: false
-  BASE_IMAGE: ubuntu:24.04 #debian:bookworm
+  BASE_IMAGE: ubuntu:24.04
   WG: false # true
   PTF: "linux/amd64,linux/arm64"
   # no dante-server on ubuntu 24.04 for armhf

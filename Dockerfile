@@ -1,5 +1,5 @@
-ARG base=debian:bookworm-slim
-ARG base=ubuntu:24.04
+ARG base=debian:13-slim
+#ARG base=ubuntu:24.04
 #hadolint ignore=DL3006
 FROM ${base} AS base
 ARG base
@@ -46,21 +46,25 @@ ENV GROUP=P2P
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 #add apt-cacher setting if present:
 #hadolint ignore=DL3018,DL3008
-RUN if [[ -n "${aptcacher}" ]]; then echo "Acquire::http::Proxy \"http://${aptcacher}:3142\";" >/etc/apt/apt.conf.d/01proxy \
-    && echo "Acquire::https::Proxy \"http://${aptcacher}:3142\";" >>/etc/apt/apt.conf.d/01proxy ; fi \
-    && apt-get update && export DEBIAN_FRONTEND=non-interactive \
-    && apt-get -o Dpkg::Options::="--force-confold" install --no-install-recommends -qqy supervisor wget curl jq \
-    ca-certificates tzdata dante-server net-tools tinyproxy zstd \
-    # nordvpn requirements
+#hadolint ignore=DL3018,DL3008,SC2086
+RUN if [[ -n "${aptcacher}" ]]; then echo "Acquire::http::Proxy \"http://${aptcacher}:3142\";" >/etc/apt/apt.conf.d/01proxy; \
+    echo "Acquire::https::Proxy \"http://${aptcacher}:3142\";" >>/etc/apt/apt.conf.d/01proxy ; fi; \
+    # allow to install resolvconf \
+    echo "resolvconf resolvconf/linkify-resolvconf boolean false" | debconf-set-selections \
+    # trixie backports \
+    && if [[ "${base}" =~ (trixie|13) ]]; then echo -e "Types: deb deb-src\nURIs: http://deb.debian.org/debian\nSuites: trixie-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\nEnabled: yes">/etc/apt/sources.list.d/debian-backports.sources \
+    && echo -e "Types: deb deb-src\nURIs: http://deb.debian.org/debian\nSuites: forky\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\nEnabled: yes">/etc/apt/sources.list.d/debian-testing.sources \
+    && apt-get update && apt-get -o Dpkg::Options::="--force-confold" install -t forky --no-install-recommends -qqy  dante-server libassuan9 e2fsprogs; DS="" ; else DS="dante-server libassuan0"; fi \
+    && apt-get update && export DEBIAN_FRONTEND=non-interactive && apt-get -o Dpkg::Options::="--force-confold" install --no-install-recommends -qqy supervisor wget curl jq \
+    ca-certificates tzdata net-tools tinyproxy zstd ${DS}\
+    # nordvpn requirements \
     iproute2 iptables readline-common dirmngr gnupg gnupg-l10n gnupg-utils gpg gpg-agent gpg-wks-client \
-    gpg-wks-server gpgconf gpgsm libassuan0 libksba8 libsqlite3-0 lsb-base pinentry-curses \
+    gpg-wks-server gpgconf gpgsm libksba8 libsqlite3-0 lsb-base pinentry-curses \
+    # wireguard \
+    wireguard-tools \
+    && echo "BASE: ${base}, ${WG}, ${TB}" \
     && if [[ ${WG} != false ]]; then apt-get -o Dpkg::Options::="--force-confold" install -y --no-install-recommends wireguard wireguard-tools; fi \
     && apt-get clean all && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-    #&& wget -nv -t10 -O /tmp/nordrepo.deb  "https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/n/nordvpn-release/nordvpn-release_1.0.0_all.deb" \
-    #&& apt-get install -qqy --no-install-recommends -f /tmp/nordrepo.deb && apt-get update \
-    #&& apt-get install -qqy --no-install-recommends -y nordvpn="${VERSION}" \
-    #&& apt-get remove -y wget nordvpn-release && find /etc/apt/ -iname "*.list" -exec cat {} \; && echo \
-    #&& addgroup --system vpn && useradd -lNms /usr/bin/bash -u "${NUID:-1000}" -G nordvpn,vpn nordclient \
 RUN mkdir -p /run/nordvpn \
     && sh <(curl -sSf https://downloads.nordcdn.com/apps/linux/install.sh) -n -v ${VERSION} \
     && addgroup --system vpn \

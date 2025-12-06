@@ -25,7 +25,7 @@ on:
         description: "platforms linux/xx"
       base_image:
         type: string
-        default: debian:bookworm # ubuntu:24.04
+        default: debian:bookworm-slim # ubuntu:24.04
         description: "Base image debian/ubuntu"
       wg:
         type: boolean
