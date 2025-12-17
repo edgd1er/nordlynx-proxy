@@ -4,7 +4,7 @@ ARG base=debian:13-slim
 FROM ${base} AS base
 ARG base
 ARG aptcacher=""
-ARG VERSION=4.3.0
+ARG VERSION=4.3.1
 ARG TZ=America/Chicago
 ARG WG=false
 ARG BUILD_DATE
@@ -19,7 +19,7 @@ LABEL maintainer="edgd1er <edgd1er@htomail.com>" \
       org.label-schema.schema-version="1.0"
 
 ENV TZ=${TZ}
-ENV NORDVPN_VERSION=4.3.0
+ENV NORDVPN_VERSION=4.3.1
 ENV DEBIAN_FRONTEND=noninteractive
 ENV GENERATE_WIREGUARD_CONF=false
 ENV ANALYTICS=off
