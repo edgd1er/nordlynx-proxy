@@ -3,7 +3,7 @@ name: debian based multi-arch images w/o wireguard-tools
 env:
   IMAGE: nordlynx-proxy
   TAG: latest
-  PUSH: false
+  PUSH: true
   BASE_IMAGE: debian:13-slim
   WG: false # true
   PTF: "linux/amd64,linux/arm64,linux/arm/v7"
