@@ -14,7 +14,7 @@ on:
     inputs:
       mypush:
         type: boolean
-        default: false
+        default: true
         description: "push true/false"
   push:
     branches:
