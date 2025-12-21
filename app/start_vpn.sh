@@ -178,7 +178,7 @@ fi
 
 # login: already logged in return 1
 res="$(nordvpn ${logincmd})" || true
-if [[ "${res}" != *"Welcome to NordVPN"* ]] && [[ "${res,,}" =~ (\'|a)re\ already\ logged\ in ]]; then
+if [[ "${res}" != *"Welcome to NordVPN"* ]] && [[ ! "${res,,}" =~ (\'|a)re\ already\ logged\ in ]]; then
   log "ERROR: NORDVPN: cannot login: ${res}"
   exit 1
 fi
