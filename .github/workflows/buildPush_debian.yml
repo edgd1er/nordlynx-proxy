@@ -25,14 +25,29 @@ on:
       - 'README.md'
 
 jobs:
+    determine-push:
+      runs-on: ubuntu-latest
+      outputs:
+        push: ${{ steps.set.outputs.push }}
+      steps:
+        - name: set push value
+          id: set
+          run: |
+            if [ "${{ github.event_name }}" = "push" ]; then
+              echo "push=true" >> "$GITHUB_OUTPUT"
+            else
+              # pour workflow_dispatch on lit l'input (par défaut true)
+              echo "push=${{ github.event.inputs.push != '' && github.event.inputs.push || 'true' }}" >> "$GITHUB_OUTPUT"
+            fi
     envtooutput:
       runs-on: ubuntu-latest
+      needs: determine-push
       outputs:
         image: ${{ env.IMAGE }}
         tag: ${{ env.TAG }}
         ptf: ${{ env.PTF }}
         base_image: ${{ env.BASE_IMAGE }}
-        push: "${{ inputs.mypush }}"
+        push: "${{ needs.determine-push.outputs.push }}"
         wg: "${{ env.WG }}"
       steps:
         - name: dummy task to get outputs.
@@ -49,7 +64,7 @@ jobs:
         ptf: "${{ needs.envtooutput.outputs.ptf }}"
         base_image: "${{ needs.envtooutput.outputs.base_image }}"
         #push: false
-        push: ${{ needs.envtooutput.outputs.push == 'true' }}
+        push: ${{ needs.envtooutput.outputs.push }}
         wg: false
       secrets: inherit
 
