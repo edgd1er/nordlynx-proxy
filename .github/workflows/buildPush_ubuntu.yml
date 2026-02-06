@@ -41,6 +41,7 @@ jobs:
             fi
     envtooutput:
       runs-on: ubuntu-latest
+      needs: determine-push
       outputs:
         image: ${{ env.IMAGE }}
         tag: ${{ env.TAG }}
@@ -63,7 +64,7 @@ jobs:
         ptf: "${{ needs.envtooutput.outputs.ptf }}"
         base_image: "${{ needs.envtooutput.outputs.base_image }}"
         #push: false
-        push: ${{ needs.envtooutput.outputs.push }}
+        push: ${{ needs.envtooutput.outputs.push == 'true' }}
         wg: false
       secrets: inherit
 

@@ -64,7 +64,7 @@ jobs:
         ptf: "${{ needs.envtooutput.outputs.ptf }}"
         base_image: "${{ needs.envtooutput.outputs.base_image }}"
         #push: false
-        push: ${{ needs.envtooutput.outputs.push }}
+        push: ${{ needs.envtooutput.outputs.push == 'true' }}
         wg: false
       secrets: inherit
 
