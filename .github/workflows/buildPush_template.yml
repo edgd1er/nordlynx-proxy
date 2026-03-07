@@ -111,7 +111,7 @@ jobs:
             type=raw,enable=${{ contains(inputs.base_image,'debian') }},priority=200,prefix=,suffix=,value=${{ inputs.TAG }}
       - name: Build and push
         id: build
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           builder: ${{ steps.buildx.outputs.name }}
           context: .
