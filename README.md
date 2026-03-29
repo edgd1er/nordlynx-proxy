@@ -42,9 +42,9 @@ Warning 1: login process is sometimes unstable:
 It's not you, it's us. We're having trouble reaching our servers. If the issue persists, please contact our customer support.
 ```
 
-Warning 2: login through token is preferred:
+Warning 2: login through token is required:
 ```
-Logging in via ‘--legacy’, ‘--username’, and ‘--password’ flags is deprecated. Use ‘nordvpn login' or ‘nordvpn login --nordaccount’ to log in via browser. Alternatively, you can use ‘nordvpn login --token’ to log in with a generated token.
+Logging in via ‘--legacy’, ‘--username’, and ‘--password’ flags is not possible anymore. Use ‘nordvpn login' or ‘nordvpn login --nordaccount’ to log in via browser. Alternatively, you can use ‘nordvpn login --token’ to log in with a generated token.
 ```
 
 Warning 3: at the moment, the container is not set to run with generated wireguard config file. (healthcheck, start checks, switch from NordVPN to WireGuard tools).
@@ -110,8 +110,7 @@ Might be needed, if NordVPN cannot change the settings itself.
 * CONNECT: [country]/[server]/[country_code]/[city] or [country] [city], if none provide you will connect to argentina server.
 * [COUNTRY](https://api.nordvpn.com/v1/servers/countries): define the exit country, default argentina.
 * [GROUP](https://api.nordvpn.com/v1/servers/groups): Default P2P, value: Africa_The_Middle_East_And_India, Asia_Pacific, Europe, Onion_Over_VPN, P2P, Standard_VPN_Servers, The_Americas, although many categories are possible, p2p seems to be more adapted.
-* NORDVPN_LOGIN: email or token (as of 25-07-21, service credentials are not allowed).
-* NORDVPN_PASS: pass or empty when using token
+* NORDVPN_TOKEN: token (as of 25-07-21, service credentials are not allowed).
 * CYBER_SEC, default off
 * KILLERSWITCH, default on
 * DNS: change dns
@@ -122,7 +121,7 @@ Might be needed, if NordVPN cannot change the settings itself.
 * TINYPASS: optional, enforces authentication over tinyproxy when set with TINYUSER. 
 
 ### NordVPN Authentication
-As of 23-12-2022, login with username and password are deprecated, as well as legacy. Username and password logins are allowed in the container, but may not be allowed by NordVPN. Login with a token is highly recommended. Tokens can be generated in your [NordAccount](https://my.nordaccount.com/dashboard/nordvpn).
+As of 23-12-2022, login with a token is required. Tokens can be generated in your [NordAccount](https://my.nordaccount.com/dashboard/nordvpn).
 
 ### docker-compose example with env variables explained
 ```yaml
@@ -147,8 +146,7 @@ services:
       #- TECHNOLOGY=NordLynx #OpenVPN or NordLynx
       #- PROTOCOL=udp #Optional, udp (default) or tcp. Can only be used with TECHNOLOGY=OpenVPN.
       #- IPV6=off #Optional, off by default, on/off available, off disables IPV6 in NordVPN app
-      #- NORDVPN_LOGIN=<email or token> #Not required if using secrets
-      #- NORDVPN_PASS=<pass> #Not required if using secrets or token in above `NORDVPN_LOGIN=token`
+      #- NORDVPN_TOKEN=<token> #Not required if using secrets
       #- DEBUG=0 #(0/1) activate debug mode for scripts, dante, tinyproxy
       - LOCAL_NETWORK=192.168.1.0/24 #LAN subnet to route through proxies and vpn.
       #- TINYUSER: optional, enforces authentication over tinyproxy when set with TINYPASS.
@@ -166,7 +164,7 @@ services:
 
 secrets:
     NORDVPN_CREDS:
-        file: ./nordvpn_creds #file with username/token in 1st line, passwd in 2nd line.
+        file: ./nordvpn_creds #file with token in 1st line.
     TINY_CREDS:
         file: ./tiny_creds #file with username/password in 1st line, passwd in 2nd line.
 ```
@@ -176,7 +174,7 @@ secrets:
 Nordvpn and tinyproxy credentials may be available throught secrets (/run/secrets/nordvpn_creds, /run/secrets/tiny_creds)
 In the setup scripts, secrets values override any env values. Secrets names are fixed values: NORDVPN_CREDS, TINY_CREDS.
 
-file: ./nordvpn_creds #file with username/token in 1st line, passwd in 2nd line.
+file: ./nordvpn_creds #file with token in 1st line.
 file: ./tiny_creds #file with username/password in 1st line, passwd in 2nd line.
 
 ### Troubleshoot

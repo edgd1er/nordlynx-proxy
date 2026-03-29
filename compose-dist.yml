@@ -24,8 +24,7 @@ services:
       - TECHNOLOGY=NordLynx #openvpn or nordlynx (default)
       - OBFUSCATE=off # or on, obfuscate only available when using openvpn(tcp or udp), hide use of vpn.
       #- IPV6=off #optional, off by default, on/off available, off disable IPV6 in nordvpn app
-      #- NORDVPN_LOGIN=<email> #Not required if using secrets
-      #- NORDVPN_PASS=<pass> #Not required if using secrets
+      #- NORDVPN_TOKEN=<token> #Not required if using secrets
       #- DEBUG=0 #(0/1) activate debug mode for scripts, dante, tinproxy
       #- LOCAL_NETWORK=192.168.0.0/24 #LAN to route through proxies and vpn.
       #- TINYUSER: optional, enforces authentication over tinyproxy when set with TINYPASS.
