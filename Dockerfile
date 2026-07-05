@@ -1,5 +1,5 @@
 ARG base=debian:13-slim
-#ARG base=ubuntu:24.04
+#ARG base=ubuntu:26.04
 #hadolint ignore=DL3006
 FROM ${base} AS base
 ARG base
@@ -51,8 +51,9 @@ RUN if [[ -n "${aptcacher}" ]]; then echo "Acquire::http::Proxy \"http://${aptca
     echo "Acquire::https::Proxy \"http://${aptcacher}:3142\";" >>/etc/apt/apt.conf.d/01proxy ; fi; \
     # allow to install resolvconf \
     echo "resolvconf resolvconf/linkify-resolvconf boolean false" | debconf-set-selections \
+            && if [[ "${base}" =~ (resolute|26) ]]; then DS="dante-server libassuan9" ; elif \
     # trixie backports \
-    && if [[ "${base}" =~ (trixie|13) ]]; then echo -e "Types: deb deb-src\nURIs: http://deb.debian.org/debian\nSuites: trixie-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\nEnabled: yes">/etc/apt/sources.list.d/debian-backports.sources \
+    [[ "${base}" =~ (trixie|13) ]]; then echo -e "Types: deb deb-src\nURIs: http://deb.debian.org/debian\nSuites: trixie-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\nEnabled: yes">/etc/apt/sources.list.d/debian-backports.sources \
     && echo -e "Types: deb deb-src\nURIs: http://deb.debian.org/debian\nSuites: forky\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\nEnabled: yes">/etc/apt/sources.list.d/debian-testing.sources \
     && apt-get update && apt-get -o Dpkg::Options::="--force-confold" install -t forky --no-install-recommends -qqy  dante-server libassuan9 e2fsprogs; DS="" ; else DS="dante-server libassuan0"; fi \
     && apt-get update && export DEBIAN_FRONTEND=non-interactive && apt-get -o Dpkg::Options::="--force-confold" install --no-install-recommends -qqy supervisor wget curl jq \
