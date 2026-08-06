@@ -59,7 +59,7 @@ RUN if [[ -n "${aptcacher}" ]]; then echo "Acquire::http::Proxy \"http://${aptca
     && apt-get update && export DEBIAN_FRONTEND=non-interactive && apt-get -o Dpkg::Options::="--force-confold" install --no-install-recommends -qqy supervisor wget curl jq \
     ca-certificates tzdata net-tools tinyproxy zstd ${DS}\
     # nordvpn requirements \
-    iproute2 iptables readline-common dirmngr gnupg gnupg-l10n gnupg-utils gpg gpg-agent gpg-wks-client \
+    iproute2 nftables readline-common dirmngr gnupg gnupg-l10n gnupg-utils gpg gpg-agent gpg-wks-client \
     gpg-wks-server gpgconf gpgsm libksba8 libsqlite3-0 lsb-base pinentry-curses \
     # wireguard \
     wireguard-tools \
