@@ -2,7 +2,6 @@ name: ubuntu based multi-arch images w/o wireguard-tools
 
 env:
   IMAGE: nordlynx-proxy
-  TAG: latest
   PUSH: true
   BASE_IMAGE: ubuntu:26.04
   WG: false # true
@@ -44,7 +43,7 @@ jobs:
       needs: determine-push
       outputs:
         image: ${{ env.IMAGE }}
-        tag: ${{ env.TAG }}
+        tag: ${{ github.ref == 'refs/heads/dev' && 'dev' || 'latest' }}
         ptf: ${{ env.PTF }}
         base_image: ${{ env.BASE_IMAGE }}
         push: "${{ needs.determine-push.outputs.push }}"

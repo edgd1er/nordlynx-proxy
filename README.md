@@ -26,11 +26,14 @@
 # nordlynx-proxy
 
 [NordVPN client's version](https://nordvpn.com/fr/blog/nordvpn-linux-release-notes/) or [changelog](
-https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/n/nordvpn/nordvpn_5.4.1_amd64.changelog): 5.4.1 (13-10-2026)
+https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/n/nordvpn/nordvpn_6.0.1_amd64.changelog): 6.0.1 (22-10-2026)
+
+2026/10/21: With version 6+, all containers require privileged mode.
+
+Starting from 2025/07/14, two new docker tags are added <version>-debian, <version>-ubuntu.
 
 As of 2024/11/18, nordvpn reorganized its repository and removed pre 3.17.0 versions. privileged mode is now required for the container when using latest or <env>-debian.
 
-Starting from 2025/07/14, two new docker tags are added <version>-debian, <version>-ubuntu.
 Debian based image requires privilege mode, please note that running privileged container is a risk.
 Ubuntu based image do not require privilege mode.
 Latest tag is based on debian as previously.
@@ -104,14 +107,14 @@ Might be needed, if NordVPN cannot change the settings itself.
 
 ## Environment options
 * ANALYTICS: [off/on], default on, send anonymous aggregate data: crash reports, OS version, marketing performance, and feature usage data
-* TECHNOLOGY: [NordLynx](https://support.nordvpn.com/hc/en-us/articles/19564565879441-What-is-NordLynx)/[OpenVPN](https://support.nordvpn.com/hc/en-us/articles/19683395.4.161-OpenVPN-connection-on-NordVPN)/[nordwhisper](https://nordvpn.com/blog/nordwhisper-protocol/), default: NordLynx (wireguard like)
+* TECHNOLOGY: [NordLynx](https://support.nordvpn.com/hc/en-us/articles/19564565879441-What-is-NordLynx)/[openvpn](https://support.nordvpn.com/hc/en-us/articles/19683396.0.161-OpenVPN-connection-on-NordVPN)/[nordwhisper](https://nordvpn.com/blog/nordwhisper-protocol/), default: NordLynx (wireguard like)
 * PROTOCOL: udp (default), tcp. Can only be used with TECHNOLOGY=OpenVPN.
-* [OBFUSCATE](https://nordvpn.com/features/obfuscated-servers/): [off/on], default off, hide vpn's use.
+* [OBFUSCATE](https://nordvpn.com/features/obfuscated-servers/): [off/on], default off, hide vpn's use, option removed in nordvpn >6
 * CONNECT: [country]/[server]/[country_code]/[city] or [country] [city], if none provide you will connect to argentina server.
 * [COUNTRY](https://api.nordvpn.com/v1/servers/countries): define the exit country, default argentina.
 * [GROUP](https://api.nordvpn.com/v1/servers/groups): Default P2P, value: Africa_The_Middle_East_And_India, Asia_Pacific, Europe, Onion_Over_VPN, P2P, Standard_VPN_Servers, The_Americas, although many categories are possible, p2p seems to be more adapted.
 * NORDVPN_TOKEN: token (as of 25-07-21, service credentials are not allowed).
-* CYBER_SEC, default off
+* CYBER_SEC, default empty, any value will enable "nordvpn set protection true" if version>6
 * KILLERSWITCH, default on
 * DNS: change dns
 * PORTS: add ports to allow
@@ -151,8 +154,8 @@ services:
       - LOCAL_NETWORK=192.168.1.0/24 #LAN subnet to route through proxies and vpn.
       #- TINYUSER: optional, enforces authentication over tinyproxy when set with TINYPASS.
       #- TINYPASS: optional, enforces authentication over tinyproxy when set with TINYUSER.
-      #- TINYLOGLEVEL=error #Optional, default error: Critical (least verbose), Error, Warning, Notice, Connect (to log connections without info's noise), Info
-      - TINYLOGOUTPUT=file # Optional, stdout or file.
+      #- TINY_LOGLEVEL=error #Optional, default error: Critical (least verbose), Error, Warning, Notice, Connect (to log connections without info's noise), Info
+      - TINY_LOGOUTPUT=file # Optional, stdout or file.
       #- TINYPORT=8888 #define tinyport inside the container, optional, 8888 by default,
       #- DANTE_LOGLEVEL="error" #Optional, error by default, available values: connect disconnect error data
       - DANTE_LOGOUTPUT=file #Optional, stdout, null, file (/var/log/dante.log=

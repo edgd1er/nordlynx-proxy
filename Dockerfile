@@ -4,7 +4,8 @@ ARG base=debian:13-slim
 FROM ${base} AS base
 ARG base
 ARG aptcacher=""
-ARG VERSION=5.4.1
+ARG VERSION=6.0.1
+ARG NORDVPNCLIENT_INSTALLED=1
 ARG TZ=America/Chicago
 ARG WG=false
 ARG BUILD_DATE
@@ -19,7 +20,7 @@ LABEL maintainer="edgd1er <edgd1er@htomail.com>" \
       org.label-schema.schema-version="1.0"
 
 ENV TZ=${TZ}
-ENV NORDVPN_VERSION=5.4.1
+ENV NORDVPN_VERSION=6.0.1
 ENV DEBIAN_FRONTEND=noninteractive
 ENV GENERATE_WIREGUARD_CONF=false
 ENV ANALYTICS=off
@@ -27,11 +28,11 @@ ENV KILLERSWITCH=on
 ENV CYBER_SEC=off
 ENV TECHNOLOGY=nordlynx
 ENV PROTOCOL=udp
-ENV OBFUSCATE=off
+ENV OBFUSCATE=""
 ENV IPV6=off
 ENV DEBUG=0
-ENV TINYLOGLEVEL=error
-ENV TINYLOGOUTPUT=stdout
+ENV TINY_LOGLEVEL=error
+ENV TINY_LOGOUTPUT=stdout
 ENV TINYPORT=8888
 ENV DANTE_LOGLEVEL=error
 ENV DANTE_LOGOUTPUT=/dev/null
@@ -42,6 +43,8 @@ ENV OBFUSCATE=off
 ENV PROTOCOL=udp
 ENV COUNTRY=argentina
 ENV GROUP=P2P
+ENV IPTABLES_LEGACY=N
+ENV NORDVPNCLIENT_INSTALLED=${NORDVPNCLIENT_INSTALLED}
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 #add apt-cacher setting if present:
@@ -76,7 +79,9 @@ RUN mkdir -p /run/nordvpn \
 
 #add apps and conf
 COPY etc/ /etc/
-COPY --chmod=0755 app/ /app/
+COPY --chmod=0755 app/healthcheck.sh /app/
+COPY --chmod=0755 app/start_vpn.sh /app/
+COPY --chmod=0755 app/utils.sh /app/
 
 #check conf template with package conf
 RUN diff /etc/tinyproxy/tinyproxy.conf /etc/tinyproxy.conf.tmpl || true \

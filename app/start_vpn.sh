@@ -1,29 +1,27 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-set -u -o pipefail
+set -euo pipefail
+shopt -s nocasematch
 
-##Functions
-source /app/utils.sh
-RDIR=/run/nordvpn
+#Vars
+[[ -f /app/utils.sh ]] && source /app/utils.sh || true
+if [[ ${DEBUG:-0} =~ (1|true|True|ON|On|on) ]]; then
+  set -x
+fi
+TSEC=5
+RDIR=/run/nordvpn/
+ANALYTICS=${ANALYTICS:-off}
+COUNTRY=${COUNTRY:-''}
+CONNECT=${CONNECT:-''}
+GROUP=${GROUP:-''}
+NOIPV6=${NOIPV6:-'off'}
+[[ -n ${COUNTRY} && -z ${CONNECT} ]] && CONNECT=${COUNTRY} && export CONNECT
+CONNECT=${CONNECT// /_}
+[[ "${GROUPID:-''}" =~ ^[0-9]+$ ]] && groupmod -g $GROUPID -o vpn
+[[ -n ${GROUP} ]] && GROUP="--group ${GROUP}"
 
-set_iptables() {
-  action=${1:-'DROP'}
-  log "INFO: setting iptables policy to ${action}"
-  iptables -F
-  iptables -X
-  iptables -P INPUT ${action}
-  iptables -P FORWARD ${action}
-  iptables -P OUTPUT ${action}
-}
 
-enforce_proxies_iptables() {
-  log "proxies: allow ports 1080, ${TINYPORT}"
-  nordvpn whitelist add port 1080 protocol TCP || true
-  nordvpn whitelist add port 1080 protocol UDP || true
-  nordvpn whitelist add port ${TINYPORT} protocol TCP || true
-  iptables -L
-}
-
+#Functions
 setIPV6() {
   if [[ 0 -eq $(grep -c "net.ipv6.conf.all.disable_ipv6" /etc/sysctl.conf) ]]; then
     echo "net.ipv6.conf.all.disable_ipv6 = ${1}" >/etc/sysctl.conf
@@ -34,78 +32,22 @@ setIPV6() {
 }
 
 #embedded in nordvpn client but not efficient in container. done in docker-compose
-#setIPV6 ${IPV6}
-
-setup_nordvpn() {
-  nordvpn set analytics ${ANALYTICS}
-  nordvpn set technology ${TECHNOLOGY,,}
-  if [[ ${PROTOCOL,,} == "tcp" ]] && [[ ${TECHNOLOGY,,} = 'openvpn' ]]; then
-      nordvpn set protocol ${PROTOCOL:-'udp'}
-  fi
-  nordvpn set notify off
-  nordvpn set tray off
-  nordvpn set cybersec ${CYBER_SEC:-'off'}
-  nordvpn set killswitch ${KILLERSWITCH:-'on'}
-  nordvpn set ipv6 ${IPV6} 2>/dev/null
-  #obfuscate only available to openvpn(tcp or udp)
-  if [[ ${OBFUSCATE,,} == "on" ]] && [[ ${TECHNOLOGY,,} = 'openvpn' ]]; then
-    nordvpn set obfuscate ${OBFUSCATE:-'off'}
-  fi
-  [[ -n ${DNS:-''} ]] && nordvpn set dns ${DNS//[;,]/ }
-  [[ -z ${DOCKER_NET:-''} ]] && DOCKER_NET="$(hostname -i | grep -Eom1 "^[0-9]{1,3}\.[0-9]{1,3}").0.0/12"
-  nordvpn whitelist add subnet ${DOCKER_NET} || true
-  [[ -n ${NETWORK:-''} ]] && for net in ${NETWORK//[;,]/ }; do nordvpn whitelist add subnet ${net}  || true; done
-  [[ -n ${PORTS:-''} ]] && for port in ${PORTS//[;,]/ }; do nordvpn whitelist add port ${port}  || true; done
-  [[ 0 -ne ${DEBUG} ]] && nordvpn version && nordvpn settings
-  nordvpn whitelist add subnet ${LOCALNET}.0.0/16  || true
-  if [[ -n ${LOCAL_NETWORK:-''} ]]; then
-    eval $(/sbin/ip route list match 0.0.0.0 | awk '{if($5!="tun0"){print "GW="$3"\nINT="$5; exit}}')
-    log "LOCAL_NETWORK: ${LOCAL_NETWORK}, Gateway: ${GW}, device ${INT}"
-    if [[ -n ${GW:-""} ]] && [[ -n ${INT:-""} ]]; then
-      for localNet in ${LOCAL_NETWORK//,/ }; do
-        log "INFO: NORDVPN: whitelisting network ${localNet}"
-        nordvpn whitelist add subnet ${localNet}  || true
-        log "INFO: NORDVPN: adding route to local network ${localNet} via ${GW} dev ${INT}"
-        /sbin/ip route add "${localNet}" via "${GW}" dev "${INT}"
-      done
-    fi
-  else
-    log "WARNING: OVPN: undefined LOCAL_NETWORK, sockd and http proxies available only through 127.0.0.1 or 0.0.0.0"
-  fi
-}
-
-mkTun() {
-  # Create a tun device see: https://www.kernel.org/doc/Documentation/networking/tuntap.txt
-  if [ ! -c /dev/net/tun ]; then
-    log "INFO: OVPN: Creating tun interface /dev/net/tun"
-    mkdir -p /dev/net
-    mknod /dev/net/tun c 10 200
-    chmod 600 /dev/net/tun
-  fi
-}
-
-extractLynxConf() {
-  [[ ${GENERATE_WIREGUARD_CONF} != true ]] && return || true
-  if [[ ${TECHNOLOGY,,} != nordlynx ]]; then
-    log "Info: NORDPVN: Connection is not a Nordlynx (wireguard) type. Cannot extract wireguard information"
-    return
-  fi
-  if [[ -z $(command -v wg) ]]; then
-    log "Error: NORDPVN: wireguard kernel and tools not installed. installing required packages, using additionnal 317 MB of disk space."
-    apt-get update && apt-get install -y --no-install-recommends wireguard wireguard-tools
-  fi
-  wg showconf nordlynx >/etc/wireguard/wg0.conf
-  chmod 600 /etc/wireguard/wg0.conf
-  log "Wireguard configuration written to /etc/wireguard/wg0.conf"
-}
+#setIPV6 ${NOIPV6}
 
 #Main
-#Overwrite docker dns as it may fail with specific configuration (dns on server/container crash)
+[[ ! -d ${RDIR} ]] && mkdir -p ${RDIR}
+
+isnordvpn6plus
+#Overwrite docker dns as it may fail with specific configuration (dns on server)
 chattr -i /etc/resolv.conf
-echo -e "nameserver 1.1.1.1\noptions timeout: 1 attempts:1 ndots:0" >/etc/resolv.conf
+echo "nameserver 1.1.1.1" >/etc/resolv.conf
+
 setTimeZone
 
-#check if installed nordvpn app is the latest available
+#stop killswitch that disable communication when no vpn is up
+allow_traffic_before_vpn
+
+# checkLatest commented as no more updated
 checkLatestApt
 if [[ -n ${NORDVPN_VERSION} ]]; then
   installedRequiredNordVpnClient
@@ -120,101 +62,75 @@ else
   log "INFO: logall feature not available
   "
 fi
-#exit if required vars are missing
-[[ -z ${CONNECT:-''} ]] && exit 1
-[[ ! -d ${RDIR} ]] && mkdir -p ${RDIR}
-
-log "INFO: NORDVPN: starting nordvpn daemon"
-action=start
-isRunning=$(supervisorctl status nordvpnd | grep -c RUNNING) || true
-[[ 0 -le ${isRunning} ]] && action=restart
-[[ -e ${RDIR}/nordvpnd.sock ]] && rm -f ${RDIR}/nordvpnd.sock
-supervisorctl ${action} nordvpnd
-sleep 4
-#start nordvpn daemon
-while [ ! -S ${RDIR}/nordvpnd.sock ]; do
-  log "WARNING: NORDVPN: restart nordvpn daemon as no socket was found"
-  supervisorctl restart nordvpnd
-  sleep 6
-done
 
 #make /dev/tun if missing
 #[[ ${TECHNOLOGY} =~ nordlynx ]] && mkTun || true
 mkTun
-enforce_proxies_iptables
 
-#define connection parameters
-setup_nordvpn
+#if running stop it.
+stop_transmission
 
+#exit if required vars are missing
+[[ -z ${CONNECT:-''} ]] && exit 1
 
-#Use secrets if present
-if [ -e /run/secrets/NORDVPN_CREDS ]; then
-  mapfile -t -n 2 vars </run/secrets/NORDVPN_CREDS
-  NORDVPN_TOKEN=${vars[0]}
-  if [[ ${#vars[*]} -eq 2 ]]; then
-    log "WARNING: two lines found, assuming token is line 1, line 2 is discarded."
+UNP_IP=$(getCurrentWanIp)
+# May be useful for Synology when iptables-nft has problems.
+if [[ ${IPTABLES_LEGACY^^} != "N" ]]; then
+   log "INFO: use iptable-legacy: https://developers.redhat.com/blog/2020/08/18/iptables-the-two-variants-and-their-relationship-with-nftables#"
+   update-alternatives --set iptables /usr/sbin/iptables-legacy
+fi
+#Drop existing rules
+set_iptables DROP
+#Accept all.
+set_iptables ACCEPT
+
+if [[ -f /run/secrets/NORDVPN_PRIVKEY ]] && [[ ${TECHNOLOGY,,} == "nordlynx" ]]; then
+  log "INFO: NORDLYNX: private key found, going for wireguard."
+  getJsonFromNordApi
+  if [[ ! -s /etc/resolv.conf ]]; then
+    rm -f /etc/resolv.conf
+    ln -s /run/resolvconf/resolv.conf /etc/resolv.conf
   fi
+  generateWireguardConf
+  connectWireguardVpn
+  enforce_iptables
+elif [[ ${NORDVPNCLIENT_INSTALLED} -eq 1 ]]; then
+  log "Info: NORDLYNX: no wireguard private key found, connecting with nordvpn client."
+  setup_nordvpn
+  startNordVpn
+  enforce_proxies_nordvpn
+  [[ ${TECHNOLOGY,,} == "nordlynx" ]] && extractLynxConf || true
+else
+  log "Error: NORDLYNX: no nordvpn client, no wireguard private key, exiting."
+  exit
 fi
 
-#Use env login if present
-if [ -z ${NORDVPN_TOKEN:-''} ]; then
-  log "ERROR: NORDVPN: **********************"
-  log "ERROR: NORDVPN: empty token   "
-  log "ERROR: NORDVPN: **********************"
+#
+echo "waiting ${TSEC} for routing to be up"
+sleep ${TSEC}
+
+#connected
+status=$(getVpnProtectionStatus)
+currentIp=$(getCurrentWanIp)
+log "INFO: current WAN IP: $(getCurrentWanIp) / unprotected ip: ${UNP_IP}, status: ${status}"
+if [[ ${UNP_IP} == ${currentIp} ]]; then
+  echo "Error, ${currentIp} is the same as host external ip (${UNP_IP}), exiting."
   exit 1
 fi
 
-if [[ -n ${NORDVPN_TOKEN:-''} ]]; then
-  logincmd="login --token ${NORDVPN_TOKEN:-''}"
+if [[ ${status,,} != "connected" ]]; then
+  echo "Warning, status is ${status} according to nordvpn."
 fi
 
+generateDantedConf
+generateTinyproxyConf
 
-# login: already logged in return 1
-res="$(nordvpn ${logincmd})" || true
-if [[ "${res}" != *"Welcome to NordVPN"* ]] && [[ ! "${res,,}" =~ (\'|a)re\ already\ logged\ in ]]; then
-  log "ERROR: NORDVPN: cannot login: ${res}"
-  exit 1
-fi
-log "INFO: NORDVPN: logged in: ${res}"
-
-
-log "INFO: NORDVPN: connecting to ${GROUP} ${CONNECT} "
-
-#connect to vpn
-res=$(nordvpn connect ${GROUP} ${CONNECT}) || true
-log "INFO: NORDVPN: connect: ${res}"
-if [[ "${res}" != *"You are connected to"* ]]; then
-  log "ERROR: NORDVPN: cannot connect to ${GROUP} ${CONNECT}"
-  res=$(nordvpn connect ${CONNECT}) || true
-  log "INFO: NORDVPN: connecting to ${CONNECT}"
-  [[ "${res}" != *"You are connected to"* ]] && log "ERROR: NORDVPN: cannot connect to ${CONNECT}" && exit 1
-fi
-status=$(nordvpn status)
-server=$(echo -e "${status}" | grep -oP "(?<=server: ).+")
-serverIp=$(echo -e "${status}" | grep -oP "(?<=IP: ).+")
-extractLynxConf
-
-echo -e "${status}"
-curip=$(curl -s 'https://api.ipify.org?format=json' | jq .ip)
-log "INFO: detected WAN IP: ${curip} / nordvpn status: ${serverIp} = ${server}"
-
-log "INFO: DANTE: generate configuration"
-/app/dante_config.sh
-
-log "INFO: TINYPROXY: generate configuration"
-/app/tinyproxy_config.sh
-
-#check N times for connected status
-N=10
-while [[ $(nordvpn status | grep -ic "connected") -eq 0 ]]; do
-  sleep 3
-  N--
-  [[ ${N} -eq 0 ]] && log "ERROR: NORDVPN: cannot connect" && exit 1
-done
-
-log "INFO: DANTE: starting"
+log "INFO: DANTE: start proxy"
 supervisorctl start dante
-sleep 2
+
 log "INFO: TINYPROXY: starting"
 supervisorctl start tinyproxy
-log "INFO: END: container started."
+
+#supervisorctl start transmission
+
+echo "back to start_vpn.sh"

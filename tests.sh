@@ -4,6 +4,7 @@ set -euop pipefail
 
 #vars
 CPSE=compose.yml
+DOCKERLIB=/var/lib/docker/
 
 HTTP_PORT=$(grep -oP "[0-9]{4}(?=:[0-9]{4}\" #http)" ${CPSE})
 SOCK_PORT=$(grep -oP "[0-9]{4}(?=:[0-9]{4}\" #socks)" ${CPSE})
@@ -30,7 +31,7 @@ buildAndWait() {
   [[ ${BUILD} -eq 1 ]] && bb="--build" || bb=""
   echo "Building and starting image"
   docker compose -f ${CPSE} up -d ${bb}
-  docker compose -f ${CPSE} exec lynx rm /var/log/{tinyproxy,dante}.log 2>/dev/null || true
+  docker compose -f ${CPSE} exec lynx rm /var/log/{tinyproxy/tinyproxy,dante}.log 2>/dev/null || true
   echo "Waiting for the container to be up.(every ${INTERVAL} sec)"
   n=0
   logs=""
@@ -84,8 +85,8 @@ testProxies() {
   declare -i try
   try=0
   vpnIP=
-  while [[ -z $vpnIP ]] && [[ try -lt 3 ]]; do
-    vpnIP=$(curl -4m5 -sx http://${TCREDS}${PROXY_HOST}:${HTTP_PORT} "https://ifconfig.me/ip")
+  while [[ -z $vpnIP ]] && [[ ${try} -lt 3 ]]; do
+    vpnIP=$(curl -4m5 -sx http://${TCREDS}${PROXY_HOST}:${HTTP_PORT} "https://ifconfig.me/ip") || true
     (( try+=1 ))
   done
   if [[ $? -eq 0 ]] && [[ ${myIp} != "${vpnIP}" ]] && [[ ${#vpnIP} -gt 0 ]]; then
@@ -140,7 +141,7 @@ getTransWebPage() {
 }
 
 checkOuput() {
-  TINY_OUT=$(grep -oP '(?<=\- TINYLOGOUTPUT=)[^ ]+' ${CPSE}) || TINY_OUT="stdout"
+  TINY_OUT=$(grep -oP '(?<=\- TINY_LOGOUTPUT=)[^ ]+' ${CPSE}) || TINY_OUT="stdout"
   DANTE_OUT=$(grep -oP '(?<=\- DANTE_LOGOUTPUT=)[^ ]+' ${CPSE}) || DANTE_OUT="stdout"
   DANTE_RES=$(docker compose -f ${CPSE} exec ${SERVICE} grep -oP "(?<=^logoutput: ).+" /etc/danted.conf 2>/dev/null || true)
   DANTE_RES=${DANTE_RES:-'stdout'}
@@ -204,9 +205,25 @@ checkContainer() {
   [[ 1 -eq ${BUILD} ]] && docker compose down
 }
 
+fixnotpermitted(){
+  if [[ -z "$(docker compose -f ${CPSE} ps --services | tr -d '\n' | grep ${SERVICE})" ]]; then
+    locked_file=$(docker compose -f ${CPSE} up -d 2>&1 | grep -oP "[0-9a-zA-Z\./]+(?=(: operation not permitted|: container is marked for removal))")||true #"(${DOCKERLIB}[^:]+|[^ ]+(?=(: operation not permitted|: container is marked for removal)))")
+    #result found but no file listed
+    if [[ ! -z ${locked_file} ]] && [[ 0 -eq $(echo $locked_file |grep -c "unable to remove") ]]; then
+      locked_file=$(docker compose -f ${CPSE} down -v 2>&1 | grep -oP "[0-9a-zA-Z\.\/]+(?=: operation not permitted)")||true  #grep -oP "(${DOCKERLIB}[^:]+|[^ ]+(?=: operation not permitted))")
+    fi
+    if [[ -f ${locked_file} ]] || true; then
+      echo "Removing ${locked_file}"
+      time sudo chattr -i ${locked_file}
+      time docker compose -f ${CPSE} up -d
+    fi
+  fi
+}
+
 usage() {
   echo "$0: build and test container"
   echo -e "\t-b\tBuild and test"
+  echo -e "\t-f\tFix not permitted"
   echo -e "\t-h\tThis help"
   echo -e "\t-t\tTest a running container"
   echo -e "\t-u\tTest an ubuntu container (debug nordvpn client)"
@@ -220,12 +237,15 @@ usage() {
 myIp=$(curl -4m5 -sq https://ifconfig.me/ip)
 
 # Get the options
-while getopts ":bhtuv" option; do
+while getopts ":bfhtuv" option; do
   case ${option} in
   b)
     BUILD=1
     buildAndWait
     checkContainer
+    ;;
+  f)
+    fixnotpermitted
     ;;
   h) # display Help
     usage
