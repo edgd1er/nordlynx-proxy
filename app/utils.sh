@@ -19,7 +19,7 @@ SOCK_PORT=1080
 [[ -n ${COUNTRY} && -z ${CONNECT} ]] && export CONNECT=${COUNTRY}
 [[ "${GROUPID:-''}" =~ ^[0-9]+$ ]] && groupmod -g $GROUPID -o vpn
 [[ -n ${GROUP} ]] && GROUP="--group ${GROUP}"
-#get container network (class B) to whitelist container subnet:  ${LOCALNET}.0.0/16
+#get container network (class B) to allowlist container subnet:  ${LOCALNET}.0.0/16
 LOCALNET=$(hostname -i | grep -Eom1 "(^[0-9]{1,3}\.[0-9]{1,3})")
 PROXY_HOST=$(ip -4 a show eth0 | grep -oP "(?<=inet )([^/]+)")
 
@@ -50,6 +50,14 @@ setTimeZone() {
   log "INFO: Setting timezone to ${TZ}"
   ln -fs /usr/share/zoneinfo/${TZ} /etc/localtime
   dpkg-reconfigure -fnoninteractive tzdata
+}
+
+isnordvpn6plus() {
+  if [[ $(nordvpn version | grep -i -oP "(?<=nordvpn version )[0-9](?=\.)") ]]; then
+    export isnordvpn6=true
+  else
+    export isnordvpn6=false
+  fi
 }
 
 checkLatest() {
@@ -137,15 +145,15 @@ changeTinyListenAddress() {
   fi
 }
 
-createUserForAuthifNeeded(){
-    TINYUSER=${1:-'NotAUser'}
-    tinyid=$(id -u ${TINYUSER}) || true
-    if [[ -z ${tinyid} ]]; then
-      adduser -gecos "" --no-create-home --disabled-password --shell /sbin/nologin  --ingroup tinyproxy ${TINYUSER}
-    fi
+createUserForAuthifNeeded() {
+  TINYUSER=${1:-'NotAUser'}
+  tinyid=$(id -u ${TINYUSER}) || true
+  if [[ -z ${tinyid} ]]; then
+    adduser -gecos "" --no-create-home --disabled-password --shell /sbin/nologin --ingroup tinyproxy ${TINYUSER}
+  fi
 }
 
-getTinyCred(){
+getTinyCred() {
   TCREDS_SECRET_FILE=/run/secrets/TINY_CREDS
   if [[ -f ${TCREDS_SECRET_FILE} ]]; then
     TINYUSER=$(sed -n '1p' ${TCREDS_SECRET_FILE})

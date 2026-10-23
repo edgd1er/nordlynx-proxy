@@ -4,7 +4,7 @@ ARG base=debian:13-slim
 FROM ${base} AS base
 ARG base
 ARG aptcacher=""
-ARG VERSION=5.4.1
+ARG VERSION=6.0.1
 ARG TZ=America/Chicago
 ARG WG=false
 ARG BUILD_DATE
@@ -19,7 +19,7 @@ LABEL maintainer="edgd1er <edgd1er@htomail.com>" \
       org.label-schema.schema-version="1.0"
 
 ENV TZ=${TZ}
-ENV NORDVPN_VERSION=5.4.1
+ENV NORDVPN_VERSION=6.0.1
 ENV DEBIAN_FRONTEND=noninteractive
 ENV GENERATE_WIREGUARD_CONF=false
 ENV ANALYTICS=off
@@ -27,7 +27,7 @@ ENV KILLERSWITCH=on
 ENV CYBER_SEC=off
 ENV TECHNOLOGY=nordlynx
 ENV PROTOCOL=udp
-ENV OBFUSCATE=off
+ENV OBFUSCATE=""
 ENV IPV6=off
 ENV DEBUG=0
 ENV TINYLOGLEVEL=error

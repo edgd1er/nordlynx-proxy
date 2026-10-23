@@ -2,7 +2,7 @@ name: ubuntu based multi-arch images w/o wireguard-tools
 
 env:
   IMAGE: nordlynx-proxy
-  TAG: latest
+  TAG: dev
   PUSH: true
   BASE_IMAGE: ubuntu:26.04
   WG: false # true
