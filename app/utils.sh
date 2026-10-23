@@ -52,6 +52,14 @@ setTimeZone() {
   dpkg-reconfigure -fnoninteractive tzdata
 }
 
+isnordvpn6plus() {
+  if [[ $(nordvpn version | grep -i -oP "(?<=nordvpn version )[0-9](?=\.)") ]]; then
+    export isnordvpn6=true
+  else
+    export isnordvpn6=false
+  fi
+}
+
 checkLatest() {
   res=$(curl -LSs "https://nordvpn.com/en/blog/nordvpn-linux-release-notes/")
   [[ -z $res ]] && return 1
@@ -137,15 +145,15 @@ changeTinyListenAddress() {
   fi
 }
 
-createUserForAuthifNeeded(){
-    TINYUSER=${1:-'NotAUser'}
-    tinyid=$(id -u ${TINYUSER}) || true
-    if [[ -z ${tinyid} ]]; then
-      adduser -gecos "" --no-create-home --disabled-password --shell /sbin/nologin  --ingroup tinyproxy ${TINYUSER}
-    fi
+createUserForAuthifNeeded() {
+  TINYUSER=${1:-'NotAUser'}
+  tinyid=$(id -u ${TINYUSER}) || true
+  if [[ -z ${tinyid} ]]; then
+    adduser -gecos "" --no-create-home --disabled-password --shell /sbin/nologin --ingroup tinyproxy ${TINYUSER}
+  fi
 }
 
-getTinyCred(){
+getTinyCred() {
   TCREDS_SECRET_FILE=/run/secrets/TINY_CREDS
   if [[ -f ${TCREDS_SECRET_FILE} ]]; then
     TINYUSER=$(sed -n '1p' ${TCREDS_SECRET_FILE})

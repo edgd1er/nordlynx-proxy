@@ -38,33 +38,49 @@ setIPV6() {
 
 setup_nordvpn() {
   nordvpn set analytics ${ANALYTICS}
-  nordvpn set technology ${TECHNOLOGY,,}
-  if [[ ${PROTOCOL,,} == "tcp" ]] && [[ ${TECHNOLOGY,,} = 'openvpn' ]]; then
-      nordvpn set protocol ${PROTOCOL:-'udp'}
-  fi
   nordvpn set notify off
   nordvpn set tray off
-  nordvpn set cybersec ${CYBER_SEC:-'off'}
   nordvpn set killswitch ${KILLERSWITCH:-'on'}
   nordvpn set ipv6 ${IPV6} 2>/dev/null
-  #obfuscate only available to openvpn(tcp or udp)
+  [[ -n ${DNS:-''} ]] && nordvpn set dns ${DNS//[;,]/ }
+
+  # nordvpn 6 changes
+  if ${isnordvpn6}; then
+    if [[ ${TECHNOLOGY,,} = 'openvpn' ]]; then
+      # openvpn_udp, openvpn_tcp,
+      nordvpn set protocol ${TECHNOLOGY}_${PROTOCOL:-'udp'}
+    else
+      # nordlynx, nordwhisper
+      nordvpn set protocol ${TECHNOLOGY}
+    fi
+    #nordvpn 6: all servers use obfuscate, command was removed
+    export OBFUSCATE=""
+
+  else
+    # pre nordvpn 6 commands.
+    nordvpn set technology ${TECHNOLOGY,,}
+    nordvpn set protocol ${PROTOCOL:-'udp'}
+    nordvpn set cybersec ${CYBER_SEC:-'off'}
+  fi
+
+  #obfuscate only available to openvpn(tcp or udp) and nordvpn <6
   if [[ ${OBFUSCATE,,} == "on" ]] && [[ ${TECHNOLOGY,,} = 'openvpn' ]]; then
     nordvpn set obfuscate ${OBFUSCATE:-'off'}
   fi
-  [[ -n ${DNS:-''} ]] && nordvpn set dns ${DNS//[;,]/ }
+
   [[ -z ${DOCKER_NET:-''} ]] && DOCKER_NET="$(hostname -i | grep -Eom1 "^[0-9]{1,3}\.[0-9]{1,3}").0.0/12"
-  nordvpn whitelist add subnet ${DOCKER_NET} || true
-  [[ -n ${NETWORK:-''} ]] && for net in ${NETWORK//[;,]/ }; do nordvpn whitelist add subnet ${net}  || true; done
-  [[ -n ${PORTS:-''} ]] && for port in ${PORTS//[;,]/ }; do nordvpn whitelist add port ${port}  || true; done
+  nordvpn allowlist add subnet ${DOCKER_NET} || true
+  [[ -n ${NETWORK:-''} ]] && for net in ${NETWORK//[;,]/ }; do nordvpn allowlist add subnet ${net}  || true; done
+  [[ -n ${PORTS:-''} ]] && for port in ${PORTS//[;,]/ }; do nordvpn allowlist add port ${port}  || true; done
   [[ 0 -ne ${DEBUG} ]] && nordvpn version && nordvpn settings
-  nordvpn whitelist add subnet ${LOCALNET}.0.0/16  || true
+  nordvpn allowlist add subnet ${LOCALNET}.0.0/16  || true
   if [[ -n ${LOCAL_NETWORK:-''} ]]; then
     eval $(/sbin/ip route list match 0.0.0.0 | awk '{if($5!="tun0"){print "GW="$3"\nINT="$5; exit}}')
     log "LOCAL_NETWORK: ${LOCAL_NETWORK}, Gateway: ${GW}, device ${INT}"
     if [[ -n ${GW:-""} ]] && [[ -n ${INT:-""} ]]; then
       for localNet in ${LOCAL_NETWORK//,/ }; do
-        log "INFO: NORDVPN: whitelisting network ${localNet}"
-        nordvpn whitelist add subnet ${localNet}  || true
+        log "INFO: NORDVPN: allowlisting network ${localNet}"
+        nordvpn allowlist add subnet ${localNet}  || true
         log "INFO: NORDVPN: adding route to local network ${localNet} via ${GW} dev ${INT}"
         /sbin/ip route add "${localNet}" via "${GW}" dev "${INT}"
       done
@@ -100,6 +116,7 @@ extractLynxConf() {
 }
 
 #Main
+isnordvpn6plus
 #Overwrite docker dns as it may fail with specific configuration (dns on server/container crash)
 chattr -i /etc/resolv.conf
 echo -e "nameserver 1.1.1.1\noptions timeout: 1 attempts:1 ndots:0" >/etc/resolv.conf
