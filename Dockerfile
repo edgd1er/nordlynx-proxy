@@ -4,7 +4,7 @@ ARG base=debian:13-slim
 FROM ${base} AS base
 ARG base
 ARG aptcacher=""
-ARG VERSION=6.0.1
+ARG VERSION=6.0.2
 ARG NORDVPNCLIENT_INSTALLED=1
 ARG TZ=America/Chicago
 ARG WG=false
@@ -20,7 +20,7 @@ LABEL maintainer="edgd1er <edgd1er@htomail.com>" \
       org.label-schema.schema-version="1.0"
 
 ENV TZ=${TZ}
-ENV NORDVPN_VERSION=6.0.1
+ENV NORDVPN_VERSION=6.0.2
 ENV DEBIAN_FRONTEND=noninteractive
 ENV GENERATE_WIREGUARD_CONF=false
 ENV ANALYTICS=off

@@ -23,7 +23,7 @@ DANTE_LOGLEVEL=${DANTE_LOGLEVEL//\"/}
 DANTE_ERRORLOG=${DANTE_ERRORLOG//\"/}
 LOGDIR=${LOGDIR:-"/var/log"}
 
-if [[ ${DEBUG:-0} =~ (1|true|True|ON|On|on) ]]; then
+if [[ ${DEBUG:-0} =~ (1|true|on) ]]; then
   set -x
   export DANTE_DEBUG=9
   export TRANSMISSION_DEBUG=true

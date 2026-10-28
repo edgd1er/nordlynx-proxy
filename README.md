@@ -26,7 +26,7 @@
 # nordlynx-proxy
 
 [NordVPN client's version](https://nordvpn.com/fr/blog/nordvpn-linux-release-notes/) or [changelog](
-https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/n/nordvpn/nordvpn_6.0.1_amd64.changelog): 6.0.1 (22-10-2026)
+https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/n/nordvpn/nordvpn_6.0.2_amd64.changelog): 6.0.2 (28-10-2026)
 
 2026/10/21: With version 6+, all containers require privileged mode.
 
@@ -107,7 +107,7 @@ Might be needed, if NordVPN cannot change the settings itself.
 
 ## Environment options
 * ANALYTICS: [off/on], default on, send anonymous aggregate data: crash reports, OS version, marketing performance, and feature usage data
-* TECHNOLOGY: [NordLynx](https://support.nordvpn.com/hc/en-us/articles/19564565879441-What-is-NordLynx)/[openvpn](https://support.nordvpn.com/hc/en-us/articles/19683396.0.161-OpenVPN-connection-on-NordVPN)/[nordwhisper](https://nordvpn.com/blog/nordwhisper-protocol/), default: NordLynx (wireguard like)
+* TECHNOLOGY: [NordLynx](https://support.nordvpn.com/hc/en-us/articles/19564565879441-What-is-NordLynx)/[openvpn](https://support.nordvpn.com/hc/en-us/articles/19683396.0.261-OpenVPN-connection-on-NordVPN)/[nordwhisper](https://nordvpn.com/blog/nordwhisper-protocol/), default: NordLynx (wireguard like)
 * PROTOCOL: udp (default), tcp. Can only be used with TECHNOLOGY=OpenVPN.
 * [OBFUSCATE](https://nordvpn.com/features/obfuscated-servers/): [off/on], default off, hide vpn's use, option removed in nordvpn >6
 * CONNECT: [country]/[server]/[country_code]/[city] or [country] [city], if none provide you will connect to argentina server.

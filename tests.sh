@@ -4,7 +4,6 @@ set -euop pipefail
 
 #vars
 CPSE=compose.yml
-DOCKERLIB=/var/lib/docker/
 
 HTTP_PORT=$(grep -oP "[0-9]{4}(?=:[0-9]{4}\" #http)" ${CPSE})
 SOCK_PORT=$(grep -oP "[0-9]{4}(?=:[0-9]{4}\" #socks)" ${CPSE})
@@ -38,7 +37,7 @@ buildAndWait() {
   while [ 0 -eq $(echo $logs | grep -c "exited: start_vpn (exit status 0; expected") ]; do
     logs="$(docker compose -f ${CPSE} logs)"
     sleep ${INTERVAL}
-    (( n+= 1 ))
+    ((n += 1))
     echo "loop: ${n}: $(docker compose -f ${CPSE} logs | tail -1)"
     [[ ${n} -eq 15 ]] && break || true
   done
@@ -49,7 +48,7 @@ areProxiesPortOpened() {
   [[ ${SERVICE} == "transmission" ]] && TM="${TRANS_PORT}" || TM=""
   for PORT in ${HTTP_PORT} ${SOCK_PORT} ${TM}; do
     msg="Test connection to port ${PORT}: "
-    if [ 0 -eq $(echo "" | nc -v -q1 -w2 ${PROXY_HOST} ${PORT} 2>&1|grep -c -P "(succeeded|open)") ]; then
+    if [ 0 -eq $(echo "" | nc -v -q1 -w2 ${PROXY_HOST} ${PORT} 2>&1 | grep -c -P "(succeeded|open)") ]; then
       msg+=" Failed"
       ((FAILED += 1))
     else
@@ -87,14 +86,14 @@ testProxies() {
   vpnIP=
   while [[ -z $vpnIP ]] && [[ ${try} -lt 3 ]]; do
     vpnIP=$(curl -4m5 -sx http://${TCREDS}${PROXY_HOST}:${HTTP_PORT} "https://ifconfig.me/ip") || true
-    (( try+=1 ))
+    ((try += 1))
   done
   if [[ $? -eq 0 ]] && [[ ${myIp} != "${vpnIP}" ]] && [[ ${#vpnIP} -gt 0 ]]; then
     echo "http proxy: IP is ${vpnIP}, mine is ${myIp}"
   else
     echo "Error, curl through http proxy to https://ifconfig.me/ip failed"
     echo "or IP (${myIp}) == vpnIP (${vpnIP})"
-    (( FAILED += 1 ))
+    ((FAILED += 1))
   fi
 
   #check detected ips
@@ -102,7 +101,7 @@ testProxies() {
   vpnIP=
   while [[ -z $vpnIP ]] && [[ try -lt 3 ]]; do
     vpnIP=$(curl -4m5 -sx socks5h://${DCREDS}${PROXY_HOST}:${SOCK_PORT} "https://ifconfig.me/ip") || true
-    (( try+=1 ))
+    ((try += 1))
   done
   if [[ $? -eq 0 ]] && [[ ${myIp} != "${vpnIP}" ]] && [[ ${#vpnIP} -gt 0 ]]; then
     echo "socks proxy: IP is ${vpnIP}, mine is ${myIp}"
@@ -205,12 +204,12 @@ checkContainer() {
   [[ 1 -eq ${BUILD} ]] && docker compose down
 }
 
-fixnotpermitted(){
+fixnotpermitted() {
   if [[ -z "$(docker compose -f ${CPSE} ps --services | tr -d '\n' | grep ${SERVICE})" ]]; then
-    locked_file=$(docker compose -f ${CPSE} up -d 2>&1 | grep -oP "[0-9a-zA-Z\./]+(?=(: operation not permitted|: container is marked for removal))")||true #"(${DOCKERLIB}[^:]+|[^ ]+(?=(: operation not permitted|: container is marked for removal)))")
+    locked_file=$(docker compose -f ${CPSE} up -d 2>&1 | grep -oP "[0-9a-zA-Z\./]+(?=(: operation not permitted|: container is marked for removal))") || true
     #result found but no file listed
-    if [[ ! -z ${locked_file} ]] && [[ 0 -eq $(echo $locked_file |grep -c "unable to remove") ]]; then
-      locked_file=$(docker compose -f ${CPSE} down -v 2>&1 | grep -oP "[0-9a-zA-Z\.\/]+(?=: operation not permitted)")||true  #grep -oP "(${DOCKERLIB}[^:]+|[^ ]+(?=: operation not permitted))")
+    if [[ ! -z ${locked_file} ]] && [[ 0 -eq $(echo $locked_file | grep -c "unable to remove") ]]; then
+      locked_file=$(docker compose -f ${CPSE} down -v 2>&1 | grep -oP "[0-9a-zA-Z\.\/]+(?=: operation not permitted)") || true
     fi
     if [[ -f ${locked_file} ]] || true; then
       echo "Removing ${locked_file}"
