@@ -20,6 +20,13 @@ CONNECT=${CONNECT// /_}
 [[ "${GROUPID:-''}" =~ ^[0-9]+$ ]] && groupmod -g $GROUPID -o vpn
 [[ -n ${GROUP} ]] && GROUP="--group ${GROUP}"
 
+if [[ -n $(which transmission-daemon) ]]; then
+  LOGDIR=/config/log
+  TINYLOG=${LOGDIR}/tinyproxy.log
+else
+  LOGDIR=/var/log
+  TINYLOG=${LOGDIR}/tinyproxy/tinproxy.log
+fi
 
 #Functions
 setIPV6() {

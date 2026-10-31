@@ -331,14 +331,14 @@ generateTinyproxyConf() {
   sed -i "s!#Allow INT_CIDR!Allow ${INT_CIDR}!" ${CONF}
 
   if [[ "file" == "${TINY_LOGOUTPUT}" ]]; then
-    [[ ! -d ${LOGDIR}/tinyproxy ]] && mkdir -p ${LOGDIR}/tinyproxy || true
-    touch ${LOGDIR}/tinyproxy/tinyproxy.log
+    [[ ! -d $(dirname ${TINYLOG}) ]] && mkdir -p $(dirname ${TINYLOG}) || true
+    touch ${TINYLOG}
     TINYUSER=$(getTinyCred)
     TINYUSER=${TINYUSER:-"tinyproxy"}
     TINYUSER=${TINYUSER%%:*}
-    chown ${TINYUSER}:tinyproxy ${LOGDIR}/tinyproxy/tinyproxy.log
-    chmod 664 ${LOGDIR}/tinyproxy/tinyproxy.log
-    sed -i -r "s%^#?LogFile.*%LogFile \"${LOGDIR}/tinyproxy/tinyproxy.log\"%" ${CONF}
+    chown ${TINYUSER}:tinyproxy ${TINYLOG}
+    chmod 664 ${TINYLOG}
+    sed -i -r "s%^#?LogFile.*%LogFile \"${TINYLOG}\"%" ${CONF}
   fi
 
   #basic Auth
